@@ -22,7 +22,7 @@ app = dash.Dash(
 df = pd.read_csv('https://impfdashboard.de/static/data/germany_vaccinations_by_state.tsv' ,header=0, sep='\t'),
 
 #deutschland-karte
-geo_df  = '/data/vg2500_geo84/vg2500_bld.shp' 
+geo_df  = 'data/vg2500_geo84/vg2500_bld.shp' 
 map_df = gpd.read_file(geo_df) 
 geojson = map_df.__geo_interface__ 
 
