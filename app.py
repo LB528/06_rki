@@ -55,7 +55,6 @@ id_bundesland_sorted = {}
 id_bundesland_s = sorted(id_bundesland.items(), key = lambda kv:(kv[1], kv[0]))
 for i in id_bundesland_s:
     id_bundesland_sorted[i[0]] = i[1]
-
 sprache = {
     'h1': {'de': 'Impfquotenmonitoring', 'en': 'Vaccination rate monitoring', 'tr': 'Aşılama oranları'},
     'h2': {'de': 'in Deutlschand', 'en': 'in Germany', 'tr': 'Almanyada'},
@@ -117,7 +116,15 @@ app.layout = html.Div(children=[
         ]
     ),
     html.Div(
-        style={'width': '100%','height': '800px','display':'inline-block','overflow': 'hidden'},
+        style={'width': '100%','display':'inline-block','overflow': 'hidden'},  
+        children=[
+            html.H3(id = 'bundesland_name',
+            children=[],
+            style={'textAlign': 'center'}),
+        ]
+    ),
+    html.Div(
+        style={'width': '100%','height': '800px','display':'inline-block','overflow': 'hidden'},  
         children=[
             dcc.Graph(id="germany",figure=fig, clear_on_unhover=True, style={'width': '100%', 'height': '80vh'}),
             dcc.Tooltip(id="tooltip_inf"),
@@ -188,7 +195,7 @@ def display_choropleth(value):
 
 #dropdown bundesland überschrift
 @app.callback(
-    Output('bundesland_name', "children"),
+    Output('bundesland_name', "children"), 
     [Input("dropdown_bundeslander", "value")])
 def display_droptitle(value):
     if value:
