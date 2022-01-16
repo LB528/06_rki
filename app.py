@@ -46,6 +46,12 @@ id_bundesland = {
     '15': 'Schleswig-Holstein'
     }
 
+sprache = {
+    'h1': {'de': 'Impfquotenmonitoring', 'en': 'Vaccination rate monitoring', 'tr': 'Aşılama oranları'},
+    'h2': {'de': 'in Deutlschand', 'en': 'in Germany', 'tr': 'Almanyada'},
+    'hover': {'de': 'Gesamtanzahl an Impfungen', 'en': 'Total number of vaccinations', 'tr': 'Toplam aşılanma sayısı'}
+}
+
 #rki daten
 df_bundes = df[0].copy()
 df_bundes.drop([2],inplace=True) #row DE-BUND dropen
@@ -67,8 +73,18 @@ fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
 fig.update_traces(hoverinfo="none",hovertemplate=None)
 
 app.layout = html.Div(children=[
-    html.H1(children='Impfquoten Monitoring',
+    html.H1(children='Impfquotenmonitoring',
             style={'textAlign': 'center'}),
+    dcc.RadioItems(
+        id='language',
+        options=[
+            {'label': 'DE', 'value': 'de'},
+            {'label': 'EN', 'value': 'en'},
+            {'label': 'TR', 'value': 'tr'}
+        ],
+        value='de',
+        labelStyle={'display': 'inline-block'}
+    ),
     html.H2(children='in Deutschland',
             style={'textAlign': 'center'}),
     #html.Img(src='data:image/png;base64,{}'.format(encoded_image)),
@@ -81,7 +97,15 @@ app.layout = html.Div(children=[
         ),
     ]), 
     html.Div(
-        style={'width': '100%','height': '1000px','display':'inline-block','overflow': 'hidden'},  
+        style={'width': '100%','display':'inline-block','overflow': 'hidden'},  
+        children=[
+            html.H3(id = 'bundesland_name',
+            children=[],
+            style={'textAlign': 'center'}),
+        ]
+    ),
+    html.Div(
+        style={'width': '100%','height': '800px','display':'inline-block','overflow': 'hidden'},  
         children=[
             dcc.Graph(id="germany",figure=fig, clear_on_unhover=True, style={'width': '100%', 'height': '80vh'}),
             dcc.Tooltip(id="tooltip_inf"),
@@ -143,6 +167,14 @@ def display_choropleth(value):
     fig.update_traces(hoverinfo="none",hovertemplate=None)
 
     return fig
+
+#dropdown bundesland überschrift
+@app.callback(
+    Output('bundesland_name', "children"), 
+    [Input("dropdown_bundeslander", "value")])
+def display_droptitle(value):
+    if value:
+        return id_bundesland[value]
 
 if __name__ == '__main__':
     app.run_server(debug=True)
