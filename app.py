@@ -24,6 +24,9 @@ app = dash.Dash(
 
 #impf-Fortschritt nach Bundesland
 df = pd.read_csv('https://impfdashboard.de/static/data/germany_vaccinations_by_state.tsv' ,header=0, sep='\t'),
+#impf-fortschritt über zeit
+df2 = pd.read_csv('https://impfdashboard.de/static/data/germany_vaccinations_timeseries_v2.tsv' ,header=0, sep='\t')
+df2_time = df2[["date","dosen_erst_kumulativ", "dosen_zweit_kumulativ", "dosen_dritt_kumulativ"]]
 
 #deutschland-karte
 geo_df  = 'data/vg2500_geo84/vg2500_bld.shp'
@@ -81,6 +84,30 @@ fig.update_geos(fitbounds="locations", visible=False)
 fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
 fig.update_traces(hoverinfo="none",hovertemplate=None)
 
+#figure mit impf fortschritt nach zeit
+fig2 = px.line(df2_time, x='date', y=['dosen_erst_kumulativ','dosen_zweit_kumulativ','dosen_dritt_kumulativ'],
+    labels={"date": "Datum", 
+            "dosen_erst_kumulativ": "Erstimpfungen", 
+            "dosen_zweit_kumulativ": "Zweitimpfungen", 
+            "dosen_dritt_kumulativ": "Drittimpfungen",
+            "value": "Anzahl Impfungen"})
+
+fig2.update_layout(
+    title="Impf-Fortschritt in Deutschland",
+    xaxis_title="Datum",
+    yaxis_title="Anzahl Impfungen in Deutschland",
+    legend_title="Impfungen",
+    yaxis_range=[0,90000000])
+
+fig2.update_traces(mode="lines", hovertemplate=None)
+fig2.update_layout(hovermode="x")
+
+def custom_legends_names(new_names):
+    for i, new_name in enumerate(new_names):
+        fig2.data[i].name = new_name
+
+custom_legends_names(["Erstimpfungen", "Zweitimpfungen", "Drittimpfungen"])
+
 app.layout = html.Div(children=[
     html.H1(children='Impfquotenmonitoring',
             style={'margin': '30px', 'textAlign': 'center'}),
@@ -118,7 +145,7 @@ app.layout = html.Div(children=[
     html.Div(
         style={'width': '100%','display':'inline-block','overflow': 'hidden'},  
         children=[
-            html.H3(id = 'bundesland_name',
+            html.H3(id = 'bundesland_name2',
             children=[],
             style={'textAlign': 'center'}),
         ]
@@ -130,7 +157,20 @@ app.layout = html.Div(children=[
             dcc.Tooltip(id="tooltip_inf"),
         ]
     ),
-    html.P('© Bundesamt für Kartographie und Geodäsie, Frankfurt am Main, 2011')
+    html.P('© Bundesamt für Kartographie und Geodäsie, Frankfurt am Main, 2011'),
+    html.Div(
+        style={'width': '50%','height': '300px','display':'inline-block', 'float':'left'},  
+        children=[
+            html.H3('Hier kommt der Info Text hin')
+        ]
+    ),
+    html.Div(
+        style={'width': '50%','height': '300px','display':'inline-block', 'float':'right'},  
+        children=[
+            dcc.Graph(id="timeseries",figure=fig2, clear_on_unhover=True, style={'width': '100%', 'height': '70vh'}),
+            #dcc.Tooltip(id="tooltip_inf"),
+        ]
+    ),
 ])
 
 #hover information #
