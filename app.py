@@ -2,6 +2,8 @@ import pandas as pd
 import geopandas as gpd
 import locale
 import math
+import requests
+import io
 
 import dash
 from dash import dcc
@@ -27,6 +29,21 @@ df = pd.read_csv('https://impfdashboard.de/static/data/germany_vaccinations_by_s
 #impf-fortschritt über zeit
 df2 = pd.read_csv('https://impfdashboard.de/static/data/germany_vaccinations_timeseries_v2.tsv' ,header=0, sep='\t')
 df2_time = df2[["date","dosen_erst_kumulativ", "dosen_zweit_kumulativ", "dosen_dritt_kumulativ"]]
+#impfquote nach altersruppen pro bundesland
+url=    'https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Daten/Impfquotenmonitoring.xlsx?__blob=publicationFile'
+download = requests.get(url)
+
+with io.BytesIO(download.content) as a:
+    df3_agegroups = pd.io.excel.read_excel(a, "Impfquote_bundesweit_Alter", header=[0,1,2])
+
+df_mindestens1x = df3_agegroups[[('Bundesland','Unnamed: 1_level_1','Unnamed: 1_level_2'),('Impfquote mindestens einmal geimpft','5-17 Jahre', '5-11 Jahre'),('Impfquote mindestens einmal geimpft','5-17 Jahre', '12-17 Jahre'), ('Impfquote mindestens einmal geimpft','18+ Jahre', '18-59 Jahre**'), ('Impfquote mindestens einmal geimpft','18+ Jahre', '60+ Jahre**')]]
+df_mindestens1x.columns = ['Bundesland', '5-11 Jahre', '12-17 Jahre', '18-59 Jahre', '60+ Jahre']
+
+df_grundimmunisiert = df3_agegroups[[('Bundesland','Unnamed: 1_level_1','Unnamed: 1_level_2'),('Impfquote grundimmunisiert','5-17 Jahre', '5-11 Jahre'),('Impfquote grundimmunisiert','5-17 Jahre', '12-17 Jahre'), ('Impfquote grundimmunisiert','18+ Jahre', '18-59 Jahre'), ('Impfquote grundimmunisiert','18+ Jahre', '60+ Jahre')]]
+df_grundimmunisiert.columns = ['Bundesland', '5-11 Jahre', '12-17 Jahre', '18-59 Jahre', '60+ Jahre']
+
+df_booster = df3_agegroups[[('Bundesland','Unnamed: 1_level_1','Unnamed: 1_level_2'),('Impfquote Auffrischimpfung','12-17 Jahre', 'Unnamed: 21_level_2'), ('Impfquote Auffrischimpfung','18+ Jahre', '18-59 Jahre'), ('Impfquote Auffrischimpfung','18+ Jahre', '60+ Jahre')]]
+df_booster.columns = ['Bundesland', '12-17 Jahre', '18-59 Jahre', '60+ Jahre']
 
 #deutschland-karte
 geo_df  = 'data/vg2500_geo84/vg2500_bld.shp'
@@ -106,7 +123,54 @@ def custom_legends_names(new_names):
     for i, new_name in enumerate(new_names):
         fig2.data[i].name = new_name
 
-custom_legends_names(["Erstimpfungen", "Zweitimpfungen", "Drittimpfungen"])
+dict = {
+    'germanlabels': ["Erstimpfungen", "Zweitimpfungen", "Drittimpfungen"]
+}
+
+custom_legends_names(dict['germanlabels'])
+
+#funktion selektiert tabellen für ausgewähltes bundesland
+def selectState(statename):
+  df_first = df_mindestens1x.loc[df_mindestens1x['Bundesland'] == statename]
+  df_immun = df_grundimmunisiert.loc[df_grundimmunisiert['Bundesland'] == statename]
+  df_boost = df_booster.loc[df_booster['Bundesland'] == statename]
+
+  return df_first, df_immun, df_boost
+
+#funktion macht den dataframe für die figure nach altersgruppen
+def df4ageFig(statename):
+  df_first, df_immun, df_boost = selectState(statename)
+  merged_df = pd.concat([df_first, df_immun, df_boost])
+  new_df = merged_df.drop(columns="Bundesland")
+  
+  col_content_DE = ['Mindestens einmal geimpft', 'Grundimmunisiert','Auffrischimpfung'] #Spalte auf Deutsch, andere Sprachen müssen noch hinzugefügt werden
+  col_name_DE = 'Art der Impfquote' #Spaltenname auf Deutsch, andere Sprachen müssen noch hinzugefügt werden
+
+  new_df.insert(loc=0, column=col_name_DE, value=col_content_DE)
+
+  return new_df
+
+df_agegroups = df4ageFig('Berlin') ########## Berlin ist hier ein dummy, da kommt dann nur statename rein, je nachdem was dann aufgerufen wird
+
+fig3 = go.Figure()
+fig3.add_trace(go.Bar(x=df_agegroups["Art der Impfquote"],
+                     y=df_agegroups["5-11 Jahre"],
+                     name="5-11 Jahre"))
+fig3.add_trace(go.Bar(x=df_agegroups["Art der Impfquote"],
+                     y=df_agegroups["12-17 Jahre"],
+                     name="12-17 Jahre"))
+fig3.add_trace(go.Bar(x=df_agegroups["Art der Impfquote"],
+                     y=df_agegroups["18-59 Jahre"],
+                     name="18-59 Jahre"))
+fig3.add_trace(go.Bar(x=df_agegroups["Art der Impfquote"],
+                     y=df_agegroups["60+ Jahre"],
+                     name="60+ Jahre"))
+
+fig3.update_layout(
+    title="Impfquote nach Altersgruppe in Berlin", #hier muss noch die statename variable rein statt Berlin
+    xaxis_title="Art der Impfquote", #andere Sprachen fehlen noch
+    yaxis_title="Impfquote in Prozent (%)", #andere Sprachen fehlen noch
+    )
 
 app.layout = html.Div(children=[
     html.H1(children='Impfquotenmonitoring',
@@ -165,9 +229,16 @@ app.layout = html.Div(children=[
         ]
     ),
     html.Div(
-        style={'width': '50%','height': '300px','display':'inline-block', 'float':'right'},  
+        style={'width': '50%','height': '100%','display':'inline-block', 'float':'right'},  
         children=[
             dcc.Graph(id="timeseries",figure=fig2, clear_on_unhover=True, style={'width': '100%', 'height': '70vh'}),
+            #dcc.Tooltip(id="tooltip_inf"),
+        ]
+    ),
+    html.Div(
+        style={'width': '100%','height': '600px','display':'inline-block',},  
+        children=[
+            dcc.Graph(id="agegroups",figure=fig3, clear_on_unhover=True, style={'width': '100%', 'height': '70vh'}),
             #dcc.Tooltip(id="tooltip_inf"),
         ]
     ),
