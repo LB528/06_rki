@@ -93,7 +93,7 @@ df_bundes['id'] = ['10','9','6','7','2','4','0','11','1','3','5','15','8','12','
 #different languages
 sprache = {
     'h1': {'de': 'Impfquotenmonitoring', 'en': 'Vaccination rate monitoring', 'tr': 'Aşı oran takibi'},
-    'h2': {'de': 'in Deutlschand', 'en': 'in Germany', 'tr': 'Almanyada'},
+    'h2': {'de': 'in Deutschland', 'en': 'in Germany', 'tr': 'Almanyada'},
     'hover': {'de': 'Gesamtanzahl an Impfungen', 'en': 'Total number of vaccinations', 'tr': 'Toplam aşılanma sayısı'},
     'placeholder_dropdown': {'de': 'Verschiedene Bundesländer', 'en': 'different states', 'tr': 'farklı eyaletler'},
     'impfquote': {'de': 'Impfquote', 'en': 'Vaccination rate', 'tr': 'Aşı oran'}
@@ -132,6 +132,20 @@ fig2 = px.line(df2_time, x='date', y=['dosen_erst_kumulativ','dosen_zweit_kumula
             "dosen_dritt_kumulativ": fig2_labels['dosen_dritt_kumulativ']['de'],
             "value": fig2_labels['value']['de']})
 
+#the colors for figure 2 are defined per color palette for color blind people: https://davidmathlogic.com/colorblind/#%23D81B60-%231E88E5-%23FFC107-%23004D40
+def custom_colors(new_colors):
+    for idx, color in enumerate(new_colors):
+        fig2.data[idx].line.color = color
+
+custom_colors(['#d81b60', '#1e88e5', '#ffc107'])
+
+def custom_names(new_names):
+    for idx, name in enumerate(new_names):
+        fig2.data[idx].name = name
+        fig2.data[idx].hovertemplate = name
+
+custom_names([fig2_labels['dosen_erst_kumulativ']['de'], fig2_labels['dosen_zweit_kumulativ']['de'], fig2_labels['dosen_dritt_kumulativ']['de']])
+
 fig2.update_layout(
     title=fig2_labels['title']['de'],
     xaxis_title=fig2_labels['date']['de'],
@@ -140,14 +154,18 @@ fig2.update_layout(
     yaxis_range=[0,90000000])
 
 fig2.update_traces(mode="lines", hovertemplate=None)
-fig2.update_layout(hovermode="x")
+fig2.update_layout(hovermode="x")       
 
-
-def custom_legends_names(new_names):
-    for i, new_name in enumerate(new_names):
-        fig2.data[i].name = new_name
-
-custom_legends_names([fig2_labels['dosen_erst_kumulativ']['de'], fig2_labels['dosen_zweit_kumulativ']['de'], fig2_labels['dosen_dritt_kumulativ']['de']])        
+#figure mit impfquote nach altersgruppen
+fig3_labels = {
+            "5-11": {'de': "5-11 Jahre" , 'en': "5-11 years", 'tr': '?'},
+            "12-17": {'de': "12-17 Jahre", 'en': "12-17 years", 'tr': '?'},
+            "18-59": {'de': "18-59 Jahre", 'en': "18-59 years", 'tr': '?'},
+            "60+": {'de': "60+ Jahre", 'en': "60+ years", 'tr': '?'},
+            "yaxis_title": {'de': 'Art der Impfquote', 'en': 'Type of vaccination rate', 'tr': "?"},
+            "xaxis_title": {'de': 'Impfquote in Prozent (%)', 'en': 'Vaccination rate in percent (%)', 'tr': '?'},
+            'title': {'de': 'Impfquote nach Altersgruppe in Berlin', 'en':'Vaccination rate as per age group in Berlin', 'tr': "?"} #hier muss berlin dann auch mit statename ersetzt werden
+}
         
 #funktion selektiert tabellen für ausgewähltes bundesland
 def selectState(statename):
@@ -171,20 +189,25 @@ def df4ageFig(statename):
   return new_df
 
 df_agegroups = df4ageFig('Berlin') ########## Berlin ist hier ein dummy, da kommt dann nur statename rein, je nachdem was dann aufgerufen wird
-
+ 
+#the colors for figure 3 are defined per color palette for color blind people: https://davidmathlogic.com/colorblind/#%23D81B60-%231E88E5-%23FFC107-%23004D40
 fig3 = go.Figure()
 fig3.add_trace(go.Bar(x=df_agegroups["Art der Impfquote"],
                      y=df_agegroups["5-11 Jahre"],
-                     name="5-11 Jahre"))
+                     name="5-11 Jahre",
+                     marker_color='#d81b60'))
 fig3.add_trace(go.Bar(x=df_agegroups["Art der Impfquote"],
                      y=df_agegroups["12-17 Jahre"],
-                     name="12-17 Jahre"))
+                     name="12-17 Jahre",
+                     marker_color='#1e88e5'))
 fig3.add_trace(go.Bar(x=df_agegroups["Art der Impfquote"],
                      y=df_agegroups["18-59 Jahre"],
-                     name="18-59 Jahre"))
+                     name="18-59 Jahre",
+                     marker_color='#ffc107'))
 fig3.add_trace(go.Bar(x=df_agegroups["Art der Impfquote"],
                      y=df_agegroups["60+ Jahre"],
-                     name="60+ Jahre"))
+                     name="60+ Jahre",
+                     marker_color='#004d40'))
 
 fig3.update_layout(
     title="Impfquote nach Altersgruppe in Berlin", #hier muss noch die statename variable rein statt Berlin
@@ -264,7 +287,7 @@ app.layout = html.Div(children=[
         id = 'infotext',
         style={'width': '50%','height': '300px','display':'inline-block', 'float':'left'},
         children=[
-            #html.H3('Hier kommt der Info Text hin') müsste unten bei den callbacks gemacht werden wegen den verschiedenen sprachen
+            html.H3('Hier kommt der Info Text hin')
         ]
     ),
     html.Div(
@@ -275,10 +298,18 @@ app.layout = html.Div(children=[
         ]
     ),
     html.Div(
-        style={'width': '100%','height': '600px','display':'inline-block',},  
+        style={'width': '100%','height': '100%','display':'inline-block',},  
         children=[
             dcc.Graph(id="agegroups",figure=fig3, clear_on_unhover=True, style={'width': '100%', 'height': '70vh'}),
             #dcc.Tooltip(id="tooltip_inf"),
+        ]
+    ),
+    html.Div(
+        id = 'rki_source',
+        style={'width': '100%','height': '100%','display':'inline-block', 'float':'left'},
+        children=[
+            html.Span('Datenquelle: '),
+            html.A('Robert Koch Institut - Impfquotenmonitoring',href='https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Daten/Impfquotenmonitoring.html', target="_blank")
         ]
     ),
 ])
