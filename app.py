@@ -1,5 +1,6 @@
 from distutils.log import debug
 import pandas as pd
+import numpy as np
 import geopandas as gpd
 #import locale
 import math
@@ -85,6 +86,27 @@ id_bundesland_sorted = sort_id_bundesland(id_bundesland,'de')
 dropdown_list = [{'label': bundesland['de'], 'value': id} for id, bundesland in id_bundesland_sorted.items()]
 pach = 'Verschiedene Bundesländer'
 
+#Impfquote grundimmunisiert
+df_impfquote_grundimun = df3_agegroups[[('Bundesland','Unnamed: 1_level_1','Unnamed: 1_level_2'),('Impfquote grundimmunisiert','Gesamt-bevölkerung*', 'Unnamed: 13_level_2')]]
+df_impfquote_grundimun.columns = ['Bundesland','Gesamtbevölkerung']
+df_impfquote_grundimun = df_impfquote_grundimun[0:16]
+df_impfquote_grundimun['id'] = list(id_bundesland_sorted.keys())
+df_impfquote_grundimun['Gesamtbevölkerung'] = pd.to_numeric(df_impfquote_grundimun['Gesamtbevölkerung'])
+
+#Impfquote einmal geimpft
+df_impfquote_einmal = df3_agegroups[[('Bundesland','Unnamed: 1_level_1','Unnamed: 1_level_2'),('Impfquote mindestens einmal geimpft','Gesamt-bevölkerung*', 'Unnamed: 6_level_2')]]
+df_impfquote_einmal.columns = ['Bundesland','Gesamtbevölkerung']
+df_impfquote_einmal = df_impfquote_einmal[0:16]
+df_impfquote_einmal['id'] = list(id_bundesland_sorted.keys())
+df_impfquote_einmal['Gesamtbevölkerung'] = pd.to_numeric(df_impfquote_einmal['Gesamtbevölkerung'])
+
+#Impfquote auffrischung
+df_impfquote_auffrischung = df3_agegroups[[('Bundesland','Unnamed: 1_level_1','Unnamed: 1_level_2'),('Impfquote Auffrischimpfung','Gesamt-bevölkerung*', 'Unnamed: 20_level_2')]]
+df_impfquote_auffrischung.columns = ['Bundesland','Gesamtbevölkerung']
+df_impfquote_auffrischung = df_impfquote_auffrischung[0:16]
+df_impfquote_auffrischung['id'] = list(id_bundesland_sorted.keys())
+df_impfquote_auffrischung['Gesamtbevölkerung'] = pd.to_numeric(df_impfquote_auffrischung['Gesamtbevölkerung'])
+
 #rki daten
 df_bundes = df[0].copy()
 df_bundes.drop([2],inplace=True) #row DE-BUND dropen
@@ -96,18 +118,21 @@ sprache = {
     'h2': {'de': 'in Deutlschand', 'en': 'in Germany', 'tr': 'Almanyada'},
     'hover': {'de': 'Gesamtanzahl an Impfungen', 'en': 'Total number of vaccinations', 'tr': 'Toplam aşılanma sayısı'},
     'placeholder_dropdown': {'de': 'Verschiedene Bundesländer', 'en': 'different states', 'tr': 'farklı eyaletler'},
-    'impfquote': {'de': 'Impfquote', 'en': 'Vaccination rate', 'tr': 'Aşı oran'}
+    'impfquote': {'de': 'Impfquote', 'en': 'Vaccination rate', 'tr': 'Aşılanma oranı'},
+    'impfquote_2mal': {'de': 'Vollständig geimpft', 'en': 'Fully vaccinated', 'tr': 'Tam aşılanmış'},
+    'impfquote_einmal': {'de': 'Einmal geimpft', 'en': 'Vaccinated once', 'tr': 'Bir kez aşılanmış'},
+    'impfquote_auffrischung': {'de': 'Auffrischungsimpfung', 'en': 'Booster vaccination', 'tr': 'Üçüncü kez aşılanmışlar'}
 }
 
 #map -- first map
 fig = px.choropleth(
-        df_bundes, geojson=geojson, #nach id mappen, karte nach zahlen des rki
+        df_impfquote_einmal, geojson=geojson, #nach id mappen, karte nach zahlen des rki
         locations="id",
-        color = 'vaccinationsTotal',
+        color = 'Gesamtbevölkerung',
         projection="mercator",
-        color_continuous_scale="Greens", #"Viridis"
-        range_color=[0, df_bundes['vaccinationsTotal'].max()],
-        labels={'vaccinationsTotal':'Gesamtanzahl an Impfungen'}, # weitere infos ueber bundeslander to do!!
+        color_continuous_scale= "Greens", #"Viridis"
+        range_color=[math.floor(df_impfquote_einmal['Gesamtbevölkerung'].min()), math.ceil(df_impfquote_einmal['Gesamtbevölkerung'].max())],
+        labels={'Gesamtbevölkerung':'Impfquote'}, # weitere infos ueber bundeslander to do!!
     )
 
 fig.update_geos(fitbounds="locations", visible=False)
@@ -284,13 +309,15 @@ app.layout = html.Div(children=[
 ])
 
 #tabs
-#@app.callback(
-#    Output("tabs", "children"),
-#    Input("language", "value")
-#)
-#def update_fig2(language):
-#    return[dcc.Tab(label=sprache['impfquote'][language], value='tab-1'),
-#    dcc.Tab(label=sprache['hover'][language], value='tab-2')]
+@app.callback(
+    Output("tabs", "children"),
+    Input("language", "value")
+)
+def update_fig2(language): 
+    return[dcc.Tab(label=sprache['impfquote_einmal'][language], value='tab-1'),
+    dcc.Tab(label=sprache['impfquote_2mal'][language], value='tab-2'),
+    dcc.Tab(label=sprache['impfquote_auffrischung'][language], value='tab-3'),
+    dcc.Tab(label=sprache['hover'][language], value='tab-4')]
 
 #hover information #
 @app.callback(
@@ -299,36 +326,94 @@ app.layout = html.Div(children=[
     Output("tooltip_inf", "children"),
     Input("germany", "hoverData"),
     Input("language", "value"),
+    Input('tabs', 'value')
 )
-def display_hover(hoverData,language): # here we have to add all the other infos needed for hover menu
+def display_hover(hoverData,language,tabs): # here we have to add all the other infos needed for hover menu
     if hoverData is None:
         return False, no_update, no_update
 
     pt = hoverData["points"][0]
-    # print('pt', pt)
+    #print('pt', pt)
     id = pt['location']
-    # print('id', id)
+    #print('id', id)
     bbox = pt["bbox"]
-    # print('bbox', bbox)
+    #print('bbox', bbox)  
     num = pt["pointNumber"]
-    # print('num', num)
+    #print('num', num)
 
     name = id_bundesland_sorted[id][language]
 
-    df_row = df_bundes.iloc[num]
-    total_count = df_row['vaccinationsTotal']
-    # weil die zahlen so gross sind ist es uebersichtlicher wenn Kommas die tausender Positionen angeben
-    #new_count = locale.format_string("%.2f", total_count, grouping = True)[0:-3]
-    if language == 'en':
-        new_count = format(total_count, ',')
-    else: 
-        new_count = format(total_count, ',').replace(",", ".")
-    children = [
-        html.Div([
-            html.H5(f"{name}",style={'textAlign': 'center'}),
-            html.P(f"{sprache['hover'][language]}: {new_count}"),
-        ], style={'width': '300px', 'white-space': 'normal'})
-    ]
+    if tabs == 'tab-1':
+
+        df_row = df_impfquote_einmal.iloc[num]
+        total_count = df_row['Gesamtbevölkerung']
+        # weil die zahlen so gross sind ist es uebersichtlicher wenn Kommas die tausender Positionen angeben
+        #new_count = locale.format_string("%.2f", total_count, grouping = True)[0:-3]
+        if language != 'en':
+            new_count = format(total_count, '').replace(".", ",")
+        else:
+            new_count = total_count
+
+        children = [
+            html.Div([
+                html.H5(f"{name}",style={'textAlign': 'center'}),
+                html.P(f"{sprache['impfquote'][language]}: {new_count} %"),
+            ], style={'width': '300px', 'white-space': 'normal'})
+        ]
+
+    elif tabs == 'tab-2':
+
+        df_row = df_impfquote_grundimun.iloc[num]
+        total_count = df_row['Gesamtbevölkerung']
+        # weil die zahlen so gross sind ist es uebersichtlicher wenn Kommas die tausender Positionen angeben
+        #new_count = locale.format_string("%.2f", total_count, grouping = True)[0:-3]
+        if language != 'en':
+            new_count = format(total_count, '').replace(".", ",")
+        else:
+            new_count = total_count
+
+        children = [
+            html.Div([
+                html.H5(f"{name}",style={'textAlign': 'center'}),
+                html.P(f"{sprache['impfquote'][language]}: {new_count} %"),
+            ], style={'width': '300px', 'white-space': 'normal'})
+        ]
+
+    elif tabs == 'tab-3':
+
+        df_row = df_impfquote_auffrischung.iloc[num]
+        total_count = df_row['Gesamtbevölkerung']
+        # weil die zahlen so gross sind ist es uebersichtlicher wenn Kommas die tausender Positionen angeben
+        #new_count = locale.format_string("%.2f", total_count, grouping = True)[0:-3]
+        if language != 'en':
+            new_count = format(total_count, '').replace(".", ",")
+        else:
+            new_count = total_count
+
+        children = [
+            html.Div([
+                html.H5(f"{name}",style={'textAlign': 'center'}),
+                html.P(f"{sprache['impfquote'][language]}: {new_count} %"),
+            ], style={'width': '300px', 'white-space': 'normal'})
+        ]
+
+    elif tabs == 'tab-4':
+
+        df_row = df_bundes.iloc[num]
+        total_count = df_row['vaccinationsTotal']
+        # weil die zahlen so gross sind ist es uebersichtlicher wenn Kommas die tausender Positionen angeben
+        #new_count = locale.format_string("%.2f", total_count, grouping = True)[0:-3]
+        if language == 'en':
+            new_count = format(total_count, ',')
+        else: 
+            new_count = format(total_count, ',').replace(",", ".")
+            
+        children = [
+            html.Div([
+                html.H5(f"{name}",style={'textAlign': 'center'}),
+                html.P(f"{sprache['hover'][language]}: {new_count}"),
+            ], style={'width': '300px', 'white-space': 'normal'})
+        ]
 
     return True, bbox, children
 
@@ -337,48 +422,150 @@ def display_hover(hoverData,language): # here we have to add all the other infos
     Output("germany", "figure"),
     [Input("dropdown_bundeslander", "value")],
     Input("language", "value"),
-    #Input('tabs', 'value')
+    Input('tabs', 'value')
 )
 def display_choropleth(dropdown_bundeslander,language,tabs):
     # print('geojson[features]', geojson['features'])
     # print('value', value)
-    #if tabs == 'tab-1':
-        
 
-    #elif tabs == 'tab-2':
-
-        #deutschland karte 
-    fig = px.choropleth(
-        df_bundes, geojson=geojson,
-        locations="id",
-        color = 'vaccinationsTotal',
-            projection="mercator",
-            color_continuous_scale="Greens",
-            range_color=[0, df_bundes['vaccinationsTotal'].max()],
-            labels={'vaccinationsTotal': sprache['hover'][language]})
-
-    fig.update_geos(fitbounds="locations", visible=False)
-    fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-    fig.update_traces(hoverinfo="none",hovertemplate=None)
-
-        #einzelnes bundesland, wenn im dropdown ausgesucht
-    if dropdown_bundeslander:
-
-        geojson_bund = geojson['features'][int(dropdown_bundeslander)]
-        df_bundes_bund = df_bundes[df_bundes['id']==dropdown_bundeslander]
-
+    #impquote einmal geimpft
+    if tabs == 'tab-1':
         fig = px.choropleth(
-            df_bundes_bund, geojson=geojson_bund ,
-            locations="id",
-            color = 'vaccinationsTotal',
-            projection="mercator",
-            color_continuous_scale="Greens",
-            range_color=[0, df_bundes['vaccinationsTotal'].max()],
-            labels={'vaccinationsTotal': sprache['hover'][language]})
+        df_impfquote_einmal, geojson=geojson, #nach id mappen, karte nach zahlen des rki
+        locations="id",
+        color = 'Gesamtbevölkerung',
+        projection="mercator",
+        color_continuous_scale="Greens", #"Viridis"
+        range_color=[math.floor(df_impfquote_einmal['Gesamtbevölkerung'].min()), math.ceil(df_impfquote_einmal['Gesamtbevölkerung'].max())],
+        labels={'Gesamtbevölkerung':sprache['impfquote'][language]}, 
+        )
 
         fig.update_geos(fitbounds="locations", visible=False)
         fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
         fig.update_traces(hoverinfo="none",hovertemplate=None)
+
+        #einzelnes bundesland, wenn im dropdown ausgesucht
+        if dropdown_bundeslander:
+
+            geojson_bund = geojson['features'][int(dropdown_bundeslander)]
+            df_bundes_bund = df_impfquote_einmal[df_impfquote_einmal['id']==dropdown_bundeslander]
+
+            fig = px.choropleth(
+                df_bundes_bund, geojson=geojson_bund ,
+                locations="id",
+                color = 'Gesamtbevölkerung',
+                projection="mercator",
+                color_continuous_scale="Greens",
+                range_color=[math.floor(df_impfquote_einmal['Gesamtbevölkerung'].min()), math.ceil(df_impfquote_einmal['Gesamtbevölkerung'].max())],
+                labels={'Gesamtbevölkerung': sprache['impfquote'][language]})
+
+            fig.update_geos(fitbounds="locations", visible=False)
+            fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+            fig.update_traces(hoverinfo="none",hovertemplate=None)
+
+    if tabs == 'tab-2':
+        fig = px.choropleth(
+        df_impfquote_grundimun, geojson=geojson, #nach id mappen, karte nach zahlen des rki
+        locations="id",
+        color = 'Gesamtbevölkerung',
+        projection="mercator",
+        color_continuous_scale="Greens", #"Viridis"
+        range_color=[math.floor(df_impfquote_grundimun['Gesamtbevölkerung'].min()), math.ceil(df_impfquote_grundimun['Gesamtbevölkerung'].max())],
+        labels={'Gesamtbevölkerung':sprache['impfquote'][language]}, 
+        )
+
+        fig.update_geos(fitbounds="locations", visible=False)
+        fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+        fig.update_traces(hoverinfo="none",hovertemplate=None)
+
+        #einzelnes bundesland, wenn im dropdown ausgesucht
+        if dropdown_bundeslander:
+
+            geojson_bund = geojson['features'][int(dropdown_bundeslander)]
+            df_bundes_bund = df_impfquote_grundimun[df_impfquote_grundimun['id']==dropdown_bundeslander]
+
+            fig = px.choropleth(
+                df_bundes_bund, geojson=geojson_bund ,
+                locations="id",
+                color = 'Gesamtbevölkerung',
+                projection="mercator",
+                color_continuous_scale="Greens",
+                range_color=[math.floor(df_impfquote_grundimun['Gesamtbevölkerung'].min()), math.ceil(df_impfquote_grundimun['Gesamtbevölkerung'].max())],
+                labels={'Gesamtbevölkerung': sprache['impfquote'][language]})
+
+            fig.update_geos(fitbounds="locations", visible=False)
+            fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+            fig.update_traces(hoverinfo="none",hovertemplate=None)
+
+    if tabs == 'tab-3':
+        fig = px.choropleth(
+        df_impfquote_auffrischung, geojson=geojson, #nach id mappen, karte nach zahlen des rki
+        locations="id",
+        color = 'Gesamtbevölkerung',
+        projection="mercator",
+        color_continuous_scale="Greens", #"Viridis"
+        range_color=[math.floor(df_impfquote_auffrischung['Gesamtbevölkerung'].min()), math.ceil(df_impfquote_auffrischung['Gesamtbevölkerung'].max())],
+        labels={'Gesamtbevölkerung':sprache['impfquote'][language]}, 
+        )
+
+        fig.update_geos(fitbounds="locations", visible=False)
+        fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+        fig.update_traces(hoverinfo="none",hovertemplate=None)
+
+        #einzelnes bundesland, wenn im dropdown ausgesucht
+        if dropdown_bundeslander:
+
+            geojson_bund = geojson['features'][int(dropdown_bundeslander)]
+            df_bundes_bund = df_impfquote_auffrischung[df_impfquote_auffrischung['id']==dropdown_bundeslander]
+
+            fig = px.choropleth(
+                df_bundes_bund, geojson=geojson_bund ,
+                locations="id",
+                color = 'Gesamtbevölkerung',
+                projection="mercator",
+                color_continuous_scale="Greens",
+                range_color=[math.floor(df_impfquote_auffrischung['Gesamtbevölkerung'].min()), math.ceil(df_impfquote_auffrischung['Gesamtbevölkerung'].max())],
+                labels={'Gesamtbevölkerung': sprache['impfquote'][language]})
+
+            fig.update_geos(fitbounds="locations", visible=False)
+            fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+            fig.update_traces(hoverinfo="none",hovertemplate=None)
+
+    #gesamt anzahl
+    elif tabs == 'tab-4':
+
+        #deutschland karte 
+        fig = px.choropleth(
+            df_bundes, geojson=geojson,
+            locations="id",
+            color = 'vaccinationsTotal',
+                projection="mercator",
+                color_continuous_scale="Greens",
+                range_color=[0, df_bundes['vaccinationsTotal'].max()],
+                labels={'vaccinationsTotal': sprache['hover'][language]})
+
+        fig.update_geos(fitbounds="locations", visible=False)
+        fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+        fig.update_traces(hoverinfo="none",hovertemplate=None)
+
+        #einzelnes bundesland, wenn im dropdown ausgesucht
+        if dropdown_bundeslander:
+
+            geojson_bund = geojson['features'][int(dropdown_bundeslander)]
+            df_bundes_bund = df_bundes[df_bundes['id']==dropdown_bundeslander]
+
+            fig = px.choropleth(
+                df_bundes_bund, geojson=geojson_bund ,
+                locations="id",
+                color = 'vaccinationsTotal',
+                projection="mercator",
+                color_continuous_scale="Greens",
+                range_color=[0, df_bundes['vaccinationsTotal'].max()],
+                labels={'vaccinationsTotal': sprache['hover'][language]})
+
+            fig.update_geos(fitbounds="locations", visible=False)
+            fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+            fig.update_traces(hoverinfo="none",hovertemplate=None)
 
     return fig
 
