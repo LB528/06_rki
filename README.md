@@ -1,22 +1,45 @@
 # Robert Koch Institut - Impfquotenmonitoring
-## von Leylanur Bodur, Melanie Vogel, Johanna Helene von Wachsmann (Gruppe 6)
+## by Leylanur Bodur, Melanie Vogel, Johanna Helene von Wachsmann (Group 6)
 
-### Kontext
-Das Robert Koch Institut veröffentlicht angesichts der aktuellen Pandemiesituation durch COVID-19 regelmäßig Daten zum Pandemieverlauf wie die aktuellen Inzidenzzahlen und Daten zum Impffortschritt in Deutschland. Dabei gibt es auch einen Datensatz der den Impffortschritt pro Bundesland in Deutschland zeigt, wobei sich dieser teilweise sehr unterscheidet zwischen den einzelnen Bundesländern. Desweiteren gibt es Daten zu den Impfstoffen selbst, den Lieferungen, den Altersgruppen und Einrichtungen.
+### Context
+In light of the current pandemic situation due to COVID-19, the Robert Koch Institut (RKI) and the Bundesministerium für Gesundheit (BMG) publish frequently data regarding the pandemic behaviour, like the current incidence numbers and data about the vaccination progress in Germany. What is more, there is also a data set about the vaccination progress per state in Germany, which shows how this progress differs between the states. Furthermore, there is data about the vaccines themselves, the vaccination deliveries, the age groups, facilities, hospitalization and both the numbers of vaccinations and the vaccination rates. 
 
-### Konzept
-Wir orientieren uns an einer bereits vorhandenen Visualisierung des Robert Koch Instituts (RKIs) auf [dem Impfdashboard](https://impfdashboard.de/daten) und benutzen eine Choropleth Karte als Map Layout um eine gute Übersicht der Daten in Deutschland zeigen zu können. Die Anzahl Impfungen ist farblich hervorgehoben, wobei wir zunächst ein anderes Farbschema hatten, welches jedoch zu bunt war. Das jetztige werden wir bis zum Abschluss des Projekts noch hinsichtlich Farbblindheit und anderen Einschränkungen überprüfen. 
-In der Karte sieht man die Abgrenzungen der einzelnen Bundesländer und auch die Zahlen geben wir auf Bundeslandebene aus. Dies hat verschiedene Gründe. Die für uns verfügbaren Daten des RKIs sind auf Bundeslandebene, Landkreise wären höchstwahrscheinlich viel zu unübersichtlich und erdrückend für die Benutzer, und der direkte Vergleich der Impfzahlen würde ggf. schwieriger werden, da es dann Vergleiche zwischen einer Metropole und einem kleinen Landkreis gibt.
-Außerdem haben wir noch verschiedene Sprachauswahlmöglichkeiten festgelegt. Die Benutzerin kann dann zwischen Deutsch, Englisch, Türkisch und Russisch auswählen. Diese Auswahl haben wir so getroffen, da diese so auch auf der Seite des Impfdashboards vorhanden sind und laut eines [Interviews der Bundesregierung](https://www.bundesregierung.de/breg-de/suche/interview-muttersprache-1721084#:~:text=Zu%20den%20meistgesprochenen%20Sprachen%20in%20Deutschland%20z%C3%A4hlen%2C%20neben%20nat%C3%BCrlich%20dem%20Deutschen%2C%20Russisch%20mit%20bis%20zu%20drei%20Millionen%20Muttersprachlern%2C%20T%C3%BCrkisch%20mit%20mehr%20als%20zwei%20Millionen%20Muttersprachlern) die drei in Deutschland am häufigsten gesprochenen Sprachen Deutsch, Russisch und Türkisch sind.
+So, what is a vaccination rate ("Impfquote")? 
 
-### Prototyp
-Auf den folgenden zwei Bildern kann man unseren aktuellen Prototypen sehen. Man kann mit der Maus über ein Bundesland hovern und sieht dann in einem Fenster die aktuelle Anzahl Impfungen in diesem Bundesland. Die Karte ist farblich hervorgehoben nach Anzahl Impfungen entsprechend der Skala am rechten Rand. Es gibt auf der linken Seite ein Drop Down Menü, wo man ein Bundesland auswählen kann, welches dann angezeigt wird (siehe [Auswahl Berlin]). Desweiteren gibt es bereits Radio Buttons zum Einstellen der Sprache, wobei die Funktion dahinter noch programmiert werden muss. Die weitere Beschreibung folgt im Ausblick, da wir gerade noch daran arbeiten.
+The vaccination rate is the proportion of all people in the total population that got vaccinated so far. Since there is no standardized system for the elicitation of vaccination data in Germany, subsamples and representative samples are used in order to allow an assessment of the current vaccination situation. The RKI and BMG officially publish the most updated  and best collection of the vaccination data. 
+
+### Concept
+We orientate ourselves by existing visualizations and descriptions of the RKI on the RKI website and on the [Impfdashboard](https://impfdashboard.de/daten). We use a chloropleth map as our map layout, so that we can show a good overbiew of the data in Germany. The number of vaccinations is color-coded, whereas we first had another color scheme, which was too colorful (confusing) and not suitable for colorblind people. 
+
+The map shows the state borders in Germany and the numbers also represent state level. This has several reasons. To begin with, our goal is to give a general, really intuitive and non-confusing overview of the situation, whereas neighborhood level would yield a lot more numbers, borders and colors. This might be very confusing and overwhelming, especially for older people, and is not suitable for our approach, since we also provide a mouse hover feature vor detailed numbers per area. Secondly, direct comparisons of the number of vaccinations between a neighborhood in a metropole region and a country region wouldn't be suitable. Thirdly, the available data from the RKI and the BMG is also divided in states and data for all neighborhoods in Germany is hard / impossible to get our hands on. 
+
+Furthermore, we decided to provide different language settings. The user should be able to choose between German, English, Turkish and Russian. This selection is based on the one on the website of the Impfdashboard, as well as on the fact from an [interview with the Bundesregierung](https://www.bundesregierung.de/breg-de/suche/interview-muttersprache-1721084#:~:text=Zu%20den%20meistgesprochenen%20Sprachen%20in%20Deutschland%20z%C3%A4hlen%2C%20neben%20nat%C3%BCrlich%20dem%20Deutschen%2C%20Russisch%20mit%20bis%20zu%20drei%20Millionen%20Muttersprachlern%2C%20T%C3%BCrkisch%20mit%20mehr%20als%20zwei%20Millionen%20Muttersprachlern), that besides English, these are the three most frequently spoken languages in Germany. 
+
+In general, we want to provide a map from Germany, where the user can hover with the mouse over the different states to see the specific vaccination numbers and rate. There should be a drop down menu to select a specific state. If time permits, the map should be interactive in a way, where the user can also click on the respective state instead of choosing it from the drop down menu. Below the map, there should be more detailed information about the pandemic, general information, vaccination progress and vaccines. Next to it, there should be an overview of the vaccination progress over time and below these, there should be an overview of the vaccination rate per age group in Germany. The latter should change accordingly to a state when chosen, so that the vaccination rate per age group in the respective state is shown. Similar to that, we also want to show the hospitalization status in Germany over time and if time permits, have a comparison to the incidence and vaccination rate in a period of time. Since we want to reach as many people living in Germany as we can, including teenager, adults and seniors, there should be different language settings available on the website, namely German, English, Turkish and Russian. 
+
+What is the purpose of our visualization? 
+
+We want to emphasize the importance of vaccinations in view of hospitalization before and after vaccination progress, as well as the impact of herd immunity. We want to give more information, and also information in greater detail, of subtopics like vaccination rate, hospitalization, vaccination rate per age group for every state, not only whole Germany, number of vaccinations, not only the rate, etc.. We also want to display more visualizations in one place in comparison to existing websites.
+
+
+### Prototype
+On the following two pictures, you can see our current (state: 16/01/2022) prototype, where a lot of the above mentioned is still missing. Don't worry, a lot of it was added and adjusted by now (state 20/01/2022), so this is all a work in progress. You can hover over a state with your mouse to see the number of vaccinations in this state. The map is color-coded by number of vaccinations according to the scale on the right border. On the left side there is a drop down menu, where you can choose a state, which is then shown instead of whole Germany ([Auswahl Berlin]). There are also radio buttons for the selection of the language. 
 
 ![Screenshot vom aktuellen Stand der Hauptseite des Prototypes](../prototype_germany.jpg)
 ![Auswahl Berlin](../prototype_germany.jpg)
 
-### Ausblick
-Wir arbeiten zurzeit daran, eine Aufteilung ähnlich wie die beim Impfdashboard nach "Mindestens einmal Geimpfte", "Vollständig Geimpfte" und "Geimpfte mit Auffrischimpfungen" zu machen. Außerdem wollen wir auf die Hauptseite mit der gesamten Deutschlandkarte einen Informationstext unter die Karte setzen, sowie die zeitliche Abbildung des Impf-Fortschritts als entsprechenden Graph daneben. Sobald man ein Bundesland auswählt, soll man genauere Informationen zu dem aktuellen Stand in dem Bundesland bekommen. Dazu sollen zwei weitere Graphen entstehen, einmal die Aufteilung der Impfungen nach Altersgruppe und einmal der Zusammenhang zwischen Gesamtanzahl Impfungen und Krankenhausauslastung. Ob und inwiefern wir das letztere umsetzen, überlegen wir zurzeit noch. Außerdem wollen wir noch die Farbskala kontrollieren, sodass diese für alle aus der Zielgruppe akzeptabel ist.
+### Lookout /  what we work on right now
+- prepare different languages for text ressources, figure labels and legends
+- number of vaccinations over time divided into first, second and third vaccination
+- option to go back to main page within drop down menu
+- vaccination rate per age group in each state
+- hospitalization vs Vaccination
+- figure change when choosing a specific state
+- tabs for at least one vaccination, initial immunization and booster vaccination
+- data version info
+- vaccination rate per age group for whole Germany
+- info text
+- documentation
 
 
 
