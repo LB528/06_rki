@@ -169,15 +169,15 @@ fig2.update_layout(hovermode="x")
 
 #figure mit impfquote nach altersgruppen
 fig3_labels = {
-            "5-11": {'de': "5-11 Jahre" , 'en': "5-11 years", 'tr': '?'},
-            "12-17": {'de': "12-17 Jahre", 'en': "12-17 years", 'tr': '?'},
-            "18-59": {'de': "18-59 Jahre", 'en': "18-59 years", 'tr': '?'},
-            "60+": {'de': "60+ Jahre", 'en': "60+ years", 'tr': '?'},
-            "yaxis_title": {'de': 'Art der Impfquote', 'en': 'Type of vaccination rate', 'tr': "?"},
-            "xaxis_title": {'de': 'Impfquote in Prozent (%)', 'en': 'Vaccination rate in percent (%)', 'tr': '?'},
-            'title': {'de': 'Impfquote nach Altersgruppe in Berlin', 'en':'Vaccination rate as per age group in Berlin', 'tr': "?"}, #hier muss berlin dann auch mit statename ersetzt werden
+            "5-11": {'de': "5-11 Jahre" , 'en': "5-11 years", 'tr': '5-11 yaş'},
+            "12-17": {'de': "12-17 Jahre", 'en': "12-17 years", 'tr': '12-17 yaş'},
+            "18-59": {'de': "18-59 Jahre", 'en': "18-59 years", 'tr': '18-59 yaş'},
+            "60+": {'de': "60+ Jahre", 'en': "60+ years", 'tr': '60+ yaş'},
+            "yaxis_title": {'de': 'Art der Impfquote', 'en': 'Type of vaccination rate', 'tr': "Aşılama oranın türü"},
+            "xaxis_title": {'de': 'Impfquote in Prozent (%)', 'en': 'Vaccination rate in percent (%)', 'tr': 'Aşılama oranı yüzde olarak (%)'},
+            'title': {'de': 'Impfquote nach Altersgruppe in Berlin', 'en':'Vaccination rate as per age group in Berlin', 'tr': "Berlin'de yaş grublarına göre aşılama oranı"}, #hier muss berlin dann auch mit statename ersetzt werden
             "impfquote": {
-            'de': ['Mindestens einmal geimpft', 'Grundimmunisiert (vollständig geimpft)', 'Auffrischimpfung'], 'en': ['At least once vaccinated', 'Initial immunization (fully vaccinated)', 'Booster vaccination'], 'tr': ['?','?','?']
+            'de': ['Mindestens einmal geimpft', 'Grundimmunisiert (vollständig geimpft)', 'Auffrischimpfung'], 'en': ['At least once vaccinated', 'Initial immunization (fully vaccinated)', 'Booster vaccination'], 'tr': ['En az bir kez aşılanmış', 'Genel bağışıklık (tam aşılı)', 'Üçüncü aşı']
             }
 }
         
