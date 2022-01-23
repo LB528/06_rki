@@ -716,7 +716,7 @@ def update_fig3(language, dropdown_bundeslander):
         title_languages = {'title': {'de': 'Impfquote nach Altersgruppe in ' + str(statename), 'en':'Vaccination rate as per age group in ' + str(statename), 'tr': str(statename) + "'de yaş grublarına göre aşılama oranı"}}
     else: 
         df_agegroups = df4ageFig(statename)
-        title_languages = {'title': {'de': 'Impfquote nach Altersgruppe in Deutschland', 'en':'Vaccination rate as per age group in Germany', 'tr': "Almanyada'de yaş grublarına göre aşılama oranı"}}
+        title_languages = {'title': {'de': 'Impfquote nach Altersgruppe in Deutschland', 'en':'Vaccination rate as per age group in Germany', 'tr': "Almanyada yaş grublarına göre aşılama oranı"}}
 
     #print(statename)
     #print(df_agegroups.head())
