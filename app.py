@@ -47,6 +47,25 @@ df_grundimmunisiert.columns = ['Bundesland', '5-11 Jahre', '12-17 Jahre', '18-59
 df_booster = df3_agegroups[[('Bundesland','Unnamed: 1_level_1','Unnamed: 1_level_2'),('Impfquote Auffrischimpfung','12-17 Jahre', 'Unnamed: 21_level_2'), ('Impfquote Auffrischimpfung','18+ Jahre', '18-59 Jahre'), ('Impfquote Auffrischimpfung','18+ Jahre', '60+ Jahre')]]
 df_booster.columns = ['Bundesland', '12-17 Jahre', '18-59 Jahre', '60+ Jahre']
 
+# datenstand rki
+url=    'https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Daten/Impfquotenmonitoring.xlsx?__blob=publicationFile'
+download = requests.get(url)
+
+with io.BytesIO(download.content) as b:
+    df_dataversionRKI = pd.io.excel.read_excel(b, "Erläuterung").fillna('')
+
+#dataversion_RKI = df_dataversionRKI.iloc[0]['Digitales Impfquoten-Monitoring COVID-19 - Erläuterung']
+#print(dataversion_RKI)
+#print(df_dataversionRKI.head())
+dataversion_RKI = df_dataversionRKI['Digitales Impfquoten-Monitoring COVID-19 - Erläuterung'].values[1]
+#print(dataversion_RKI)
+#print(type(dataversion_RKI))
+
+#datenstand impfdashboard
+r = requests.get('https://impfdashboard.de/static/data/metadata.json')
+data = r.json()
+dataversion_dashboard = data['vaccinationsLastUpdated']
+
 #deutschland-karte
 geo_df  = 'data/vg2500_geo84/vg2500_bld.shp'
 map_df = gpd.read_file(geo_df)
@@ -175,7 +194,7 @@ fig3_labels = {
             "60+": {'de': "60+ Jahre", 'en': "60+ years", 'tr': '60+ yaş'},
             "yaxis_title": {'de': 'Art der Impfquote', 'en': 'Type of vaccination rate', 'tr': "Aşılama oranın türü"},
             "xaxis_title": {'de': 'Impfquote in Prozent (%)', 'en': 'Vaccination rate in percent (%)', 'tr': 'Aşılama oranı yüzde olarak (%)'},
-            'title': {'de': 'Impfquote nach Altersgruppe in Berlin', 'en':'Vaccination rate as per age group in Berlin', 'tr': "Berlin'de yaş grublarına göre aşılama oranı"}, #hier muss berlin dann auch mit statename ersetzt werden
+            #'title': {'de': 'Impfquote nach Altersgruppe in Berlin', 'en':'Vaccination rate as per age group in Berlin', 'tr': "Berlin'de yaş grublarına göre aşılama oranı"}, #hier muss berlin dann auch mit statename ersetzt werden
             "impfquote": {
             'de': ['Mindestens einmal geimpft', 'Grundimmunisiert (vollständig geimpft)', 'Auffrischimpfung'], 'en': ['At least once vaccinated', 'Initial immunization (fully vaccinated)', 'Booster vaccination'], 'tr': ['En az bir kez aşılanmış', 'Genel bağışıklık (tam aşılı)', 'Üçüncü aşı']
             }
@@ -309,6 +328,7 @@ app.layout = html.Div(children=[
         children=[
             dcc.Graph(id="timeseries",figure=fig2, clear_on_unhover=True, style={'width': '100%', 'height': '70vh'}),
             #dcc.Tooltip(id="tooltip_inf"),
+            html.Span('Datenstand: ' + str(dataversion_dashboard)),
         ]
     ),
     html.Div(
@@ -320,12 +340,19 @@ app.layout = html.Div(children=[
     ),
     html.Div(
         id = 'rki_source',
-        style={'width': '100%','height': '100%','display':'inline-block', 'float':'left'},
+        style={'width': '50%','height': '100%','display':'inline-block', 'float':'left'},
         children=[
             html.Span('Datenquellen: '),
             html.A('Robert Koch Institut - Impfquotenmonitoring',href='https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Daten/Impfquotenmonitoring.html', target="_blank"),
             html.A(', '),
             html.A('impfdashboard (RKI, BMG)', href='https://impfdashboard.de/daten', target="_blank")
+        ]
+    ),
+    html.Div(
+        id = 'data_version',
+        style={'width': '50%','height': '100%','display':'inline-block', 'float':'right'},
+        children=[
+            html.Span(str(dataversion_RKI)),
         ]
     ),
 ])
@@ -600,7 +627,7 @@ def display_droptitle(dropdown_bundeslander,language):
     if dropdown_bundeslander:
         return id_bundesland[dropdown_bundeslander][language]
 
-#chage H1 depending on language
+#change H1 depending on language
 @app.callback(
     Output("title", "children"),
     Input("language", "value"),
@@ -608,7 +635,7 @@ def display_droptitle(dropdown_bundeslander,language):
 def display_H1(language):
     return html.H1(children=sprache['h1'][language], style={'margin': '30px', 'textAlign': 'center'})
 
-#chage H2 depending on language
+#change H2 depending on language
 @app.callback(
     Output('subtitle', "children"),
     Input("language", "value"),
@@ -676,11 +703,24 @@ def update_fig2(language):
 #update fig3 sprache
 @app.callback(
     Output("agegroups", "figure"),
-    Input("language", "value")
+    Input("language", "value"),
+    [Input("dropdown_bundeslander", "value")]
 )
-def update_fig3(language):
+def update_fig3(language, dropdown_bundeslander):
     # print('geojson[features]', geojson['features'])
     # print('value', value)
+    statename = 'Gesamt'
+    if dropdown_bundeslander:
+        statename = (id_bundesland[dropdown_bundeslander]['de'])
+        df_agegroups = df4ageFig(statename) ########## Berlin ist hier ein dummy, da kommt dann nur statename rein, je nachdem was dann aufgerufen wird
+        title_languages = {'title': {'de': 'Impfquote nach Altersgruppe in ' + str(statename), 'en':'Vaccination rate as per age group in ' + str(statename), 'tr': str(statename) + "'de yaş grublarına göre aşılama oranı"}}
+    else: 
+        df_agegroups = df4ageFig(statename)
+        title_languages = {'title': {'de': 'Impfquote nach Altersgruppe in Deutschland', 'en':'Vaccination rate as per age group in Germany', 'tr': "Almanyada'de yaş grublarına göre aşılama oranı"}
+
+    #print(statename)
+    #print(df_agegroups.head())
+
     fig3 = go.Figure()
     fig3.add_trace(go.Bar(x=fig3_labels['impfquote'][language],
                      y=df_agegroups["5-11 Jahre"],
@@ -700,7 +740,7 @@ def update_fig3(language):
                      marker_color='#004d40'))
 
     fig3.update_layout(
-        title=fig3_labels['title'][language], #################################################hier muss noch die statename variable rein statt Berlin
+        title=title_languages['title'][language],
         xaxis_title=fig3_labels['xaxis_title'][language],
         yaxis_title=fig3_labels['yaxis_title'][language],
     )
