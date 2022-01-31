@@ -388,23 +388,23 @@ app.layout = html.Div(children=[
             #dcc.Tooltip(id="tooltip_inf"),
         ]
     ),
-    html.Div(id = 'Inzidenz_vs_Impfung',
-        style={'width': '100%','height': '100%','display':'inline-block'},  
-        children=[
-            dcc.Graph(id="inzidens"),
-            html.Div(
-                style={'width': '94%','height': '100%','float':'right'},
-                children = [html.P(id='P_radio_IvsI'),
-                dcc.RadioItems(
-                id='radio',
-                labelStyle={'display': 'block'},
-                value=radio_IvsI['y2']['de'] + 'verabreichte Impfdosen',
-                options=[{'label': x, 'value': x} for x in [radio_IvsI['y0']['de'], radio_IvsI['y2']['de']]]#[{'label': x, 'value': x} for x in [radio_IvsI['y0']['de'] + 'COVID-19 Inzidenz', radio_IvsI['y2']['de'] + 'verabreichte Impfdosen']
-                )],
-            ),
-            html.Br(),
-        ]
-    ),
+    # html.Div(id = 'Inzidenz_vs_Impfung',
+    #     style={'width': '100%','height': '100%','display':'inline-block'},  
+    #     children=[
+    #         dcc.Graph(id="inzidens"),
+    #         html.Div(
+    #             style={'width': '94%','height': '100%','float':'right'},
+    #             children = [html.P(id='P_radio_IvsI'),
+    #             dcc.RadioItems(
+    #             id='radio',
+    #             labelStyle={'display': 'block'},
+    #             value=radio_IvsI['y2']['de'] + 'verabreichte Impfdosen',
+    #             options=[{'label': x, 'value': x} for x in [radio_IvsI['y0']['de'], radio_IvsI['y2']['de']]]#[{'label': x, 'value': x} for x in [radio_IvsI['y0']['de'] + 'COVID-19 Inzidenz', radio_IvsI['y2']['de'] + 'verabreichte Impfdosen']
+    #             )],
+    #         ),
+    #         html.Br(),
+    #     ]
+    # ),
     html.Br(),
     html.Br(),
     html.Div(
@@ -848,77 +848,77 @@ def herdenimmun_anzeige(language,tabs):
     elif tabs == 'tab-4':
         return []
 
-#sprache updaten bei den radiobutten für das achsen wechseln bei Inzidenz_vs_Impfung
-@app.callback(
-    Output('P_radio_IvsI', "children"),
-    Input("language", "value"),
-)
-def update_langauge_radio_P(language):
-    return radio_IvsI['titel'][language]
+# #sprache updaten bei den radiobutten für das achsen wechseln bei Inzidenz_vs_Impfung
+# @app.callback(
+#     Output('P_radio_IvsI', "children"),
+#     Input("language", "value"),
+# )
+# def update_langauge_radio_P(language):
+#     return radio_IvsI['titel'][language]
 
-@app.callback(
-    Output('radio', "value"),
-    Input("language", "value"),
-)
-def update_langauge_radio_value(language):
-    return radio_IvsI['y2'][language]#+ fig4_labels['yaxis2_title'][language]
+# @app.callback(
+#     Output('radio', "value"),
+#     Input("language", "value"),
+# )
+# def update_langauge_radio_value(language):
+#     return radio_IvsI['y2'][language]#+ fig4_labels['yaxis2_title'][language]
 
-@app.callback(
-    Output('radio', "options"),
-    Input("language", "value"),
-)
-def update_langauge_radio_opt(language):
-    return [{'label': x, 'value': x} for x in [radio_IvsI['y0'][language], radio_IvsI['y2'][language]]]
-    #[{'label': x, 'value': x} for x in [radio_IvsI['y0'][language] + fig4_labels['yaxis1_title'][language], radio_IvsI['y2'][language] + fig4_labels['yaxis2_title'][language]]]
+# @app.callback(
+#     Output('radio', "options"),
+#     Input("language", "value"),
+# )
+# def update_langauge_radio_opt(language):
+#     return [{'label': x, 'value': x} for x in [radio_IvsI['y0'][language], radio_IvsI['y2'][language]]]
+#     #[{'label': x, 'value': x} for x in [radio_IvsI['y0'][language] + fig4_labels['yaxis1_title'][language], radio_IvsI['y2'][language] + fig4_labels['yaxis2_title'][language]]]
             
     
-#figur  Inzidenz_vs_Impfung   
-@app.callback(
-    Output("inzidens", "figure"), 
-    [Input("radio", "value")],
-    Input("language", "value"))
-def display_(radio_value,language):
+# #figur  Inzidenz_vs_Impfung   
+# @app.callback(
+#     Output("inzidens", "figure"), 
+#     [Input("radio", "value")],
+#     Input("language", "value"))
+# def display_(radio_value,language):
 
-    # Create figure with secondary y-axis
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+#     # Create figure with secondary y-axis
+#     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
-    # Add traces
-    fig.add_trace(
-        go.Scatter(x=daily['date'], y=daily['Gesamtzahl verabreichter Impfstoffdosen'], name=fig4_labels['impfdosen'][language]),
-        secondary_y=False,
-    )
+#     # Add traces
+#     fig.add_trace(
+#         go.Scatter(x=daily['date'], y=daily['Gesamtzahl verabreichter Impfstoffdosen'], name=fig4_labels['impfdosen'][language]),
+#         secondary_y=False,
+#     )
 
-    fig.add_trace(
-        go.Scatter(x=daily['date'], y=daily['cases'], name=fig4_labels['inzidenz'][language]),
-        secondary_y=radio_value == radio_IvsI['y2'][language],
-    )
+#     fig.add_trace(
+#         go.Scatter(x=daily['date'], y=daily['cases'], name=fig4_labels['inzidenz'][language]),
+#         secondary_y=radio_value == radio_IvsI['y2'][language],
+#     )
 
-    # Add figure title
-    fig.update_layout(
-        title_text=fig4_labels['title'][language]
-    )
+#     # Add figure title
+#     fig.update_layout(
+#         title_text=fig4_labels['title'][language]
+#     )
 
-    fig.update_traces(mode="lines", hovertemplate=None)
-    fig.update_layout(hovermode="x") 
+#     fig.update_traces(mode="lines", hovertemplate=None)
+#     fig.update_layout(hovermode="x") 
 
-    # Set x-axis title
-    fig.update_xaxes(title_text=fig4_labels['date'][language])
+#     # Set x-axis title
+#     fig.update_xaxes(title_text=fig4_labels['date'][language])
 
-    # Set y-axes titles
-    if radio_value != radio_IvsI['y2'][language]:
-        fig.update_yaxes(
-        title_text=fig4_labels['y0'][language], 
-        secondary_y=False)
-    else:
-        fig.update_yaxes(
-            title_text=fig4_labels['yaxis1_title'][language], 
-            secondary_y=False)
+#     # Set y-axes titles
+#     if radio_value != radio_IvsI['y2'][language]:
+#         fig.update_yaxes(
+#         title_text=fig4_labels['y0'][language], 
+#         secondary_y=False)
+#     else:
+#         fig.update_yaxes(
+#             title_text=fig4_labels['yaxis1_title'][language], 
+#             secondary_y=False)
 
-    fig.update_yaxes(
-        title_text=fig4_labels['yaxis2_title'][language], 
-        secondary_y=True)
+#     fig.update_yaxes(
+#         title_text=fig4_labels['yaxis2_title'][language], 
+#         secondary_y=True)
 
-    return fig
+#     return fig
 
 
 if __name__ == '__main__':
