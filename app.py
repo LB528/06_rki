@@ -1,4 +1,5 @@
 from distutils.log import debug
+from tkinter.ttk import Style
 import pandas as pd
 import numpy as np
 import geopandas as gpd
@@ -163,6 +164,14 @@ df_bundes = df[0].copy()
 df_bundes.drop([2],inplace=True) #row DE-BUND dropen
 df_bundes['id'] = ['10','9','6','7','2','4','0','11','1','3','5','15','8','12','13','14']
 
+#corona varianten
+c_varianten = ['Alpha (B.1.1.7): 80%', 'Delta (B.1.617.2): 90%', 'Omikron (B.1.1.529): 95%']
+varianten = {
+    'a': {'de':'Alpha (B.1.1.7): 80%', 'en': 'Alpha (B.1.1.7): 80%', 'tr':'Alfa (B.1.1.7): %80'},
+    'd': {'de':'Delta (B.1.617.2): 90%', 'en': 'Delta (B.1.617.2): 90%', 'tr':'Delta (B.1.617.2): %90'},
+    'o': {'de':'Omikron (B.1.1.529): 95%', 'en':'Omicron (B.1.1.529): 95%', 'tr':'Omicron (B.1.1.529): %95'}
+}
+
 #different languages
 sprache = {
     'h1': {'de': 'Impfquotenmonitoring', 'en': 'Vaccination rate monitoring', 'tr': 'Aşı oran takibi'},
@@ -173,7 +182,7 @@ sprache = {
     'impfquote_2mal': {'de': 'Vollständig geimpft', 'en': 'Fully vaccinated', 'tr': 'Tam aşılanmış'},
     'impfquote_einmal': {'de': 'Einmal geimpft', 'en': 'Vaccinated once', 'tr': 'Bir kez aşılanmış'},
     'impfquote_auffrischung': {'de': 'Auffrischungsimpfung', 'en': 'Booster vaccination', 'tr': 'Üçüncü kez aşılanmışlar'},
-    'herdenimmunität': {'de': 'Herdenimmunität', 'en':'herd immunity', 'tr': 'sürü bağışıklığı'}
+    'herdenimmunität': {'de': 'Herdenimmunität', 'en':'Herd immunity', 'tr': 'Sürü bağışıklığı'}
 
 }
 
@@ -282,20 +291,20 @@ fig3.update_layout(
     yaxis_title="Impfquote in Prozent (%)", #andere Sprachen fehlen noch
     )
 
-fig4_labels = {"date": {'de': "Datum", 'en': "Date", 'tr': 'Tarih'},
-            "inzidenz": {'de': "Inzidenzen" , 'en': "incidences", 'tr': 'vakalar'},
-            "impfdosen": {'de': "Impfstoffdosen", 'en': "vaccine doses", 'tr': 'aşı dozları'},
-            "yaxis1_title": {'de': 'COVID-19 Inzidenz', 'en': 'COVID-19 incidence', 'tr': "COVID-19 vakaları"},
-            "yaxis2_title": {'de': 'Verabreichte Impfdosen', 'en': 'Doses of vaccine administered', 'tr': "Uygulanan aşı dozları"},
-            'title': {'de': 'Zusammenhang zwischen Impfquote und Inzidenz', 'en':'Relationship between vaccination rate and incidence', 'tr': "Aşılama oranın ile vaka sayının arasındaki ilişki"},
-            'y0': {'de': 'Anzahl', 'en':'Count', 'tr': "Bazı"}
-}
+# fig4_labels = {"date": {'de': "Datum", 'en': "Date", 'tr': 'Tarih'},
+#             "inzidenz": {'de': "Inzidenzen" , 'en': "incidences", 'tr': 'vakalar'},
+#             "impfdosen": {'de': "Impfstoffdosen", 'en': "vaccine doses", 'tr': 'aşı dozları'},
+#             "yaxis1_title": {'de': 'COVID-19 Inzidenz', 'en': 'COVID-19 incidence', 'tr': "COVID-19 vakaları"},
+#             "yaxis2_title": {'de': 'Verabreichte Impfdosen', 'en': 'Doses of vaccine administered', 'tr': "Uygulanan aşı dozları"},
+#             'title': {'de': 'Zusammenhang zwischen Impfquote und Inzidenz', 'en':'Relationship between vaccination rate and incidence', 'tr': "Aşılama oranın ile vaka sayının arasındaki ilişki"},
+#             'y0': {'de': 'Anzahl', 'en':'Count', 'tr': "Bazı"}
+# }
 
-radio_IvsI = {'titel': {'de':'y-Achsen Einstellung: ', 'en': 'y-axis adjustment: ', 'tr': 'y eksen ayarı: '},
-              'y1': {'de':'y-Achsen Einstellung: ', 'en': 'y-axis adjustment: ', 'tr': 'y eksen ayarı: '},
-              'y2': {'de':'mit zweiter y-Achse ', 'en': 'with a second y-axis ', 'tr': 'ikinci y ekseni ile '},
-              'y0': {'de':'nur mit einer y-Achse ', 'en': 'only with one y-axis ', 'tr': 'sadece bir y ekseni ile '}
-    }
+# radio_IvsI = {'titel': {'de':'y-Achsen Einstellung: ', 'en': 'y-axis adjustment: ', 'tr': 'y eksen ayarı: '},
+#               'y1': {'de':'y-Achsen Einstellung: ', 'en': 'y-axis adjustment: ', 'tr': 'y eksen ayarı: '},
+#               'y2': {'de':'mit zweiter y-Achse ', 'en': 'with a second y-axis ', 'tr': 'ikinci y ekseni ile '},
+#               'y0': {'de':'nur mit einer y-Achse ', 'en': 'only with one y-axis ', 'tr': 'sadece bir y ekseni ile '}
+#     }
 
 app.layout = html.Div(children=[
     #titel and radio RadioItems
@@ -339,7 +348,29 @@ app.layout = html.Div(children=[
 
     dcc.Tabs(id="tabs", value='tab-1', children=[]),
     html.Br(),
-    html.Div(id ='herdenimmunität', children=[]),
+    html.Div(style={'margin': '10px', 'width': '50%', 'float': 'left', 'display': 'inline-block'},
+        children = [
+            html.Div(id ='herdenimmunität', 
+                style={'float': 'right', 'display': 'inline-block'},
+                children=[]
+        ),
+    ]),
+    html.Div(id = 'herd_txt', 
+        style={'margin': '10px', 'width': '45%', 'float': 'right', 'display': 'inline-block'},
+        children = [
+            html.H3(id = 'h3_herden'),
+            html.P(id = 'herdenimmun_text', style={'text-align': 'justify', 'font-size': '9px'}),
+            html.A(id ='1', href='https://www.infektionsschutz.de/coronavirus/basisinformationen/varianten-des-coronavirus-sars-cov-2/', target="_blank"),
+            html.A(id ='2', href='https://www.quarks.de/gesundheit/medizin/warum-ein-impfstoff-die-pandemie-auch-2021-nicht-beendet/', target="_blank"),
+            html.A(id ='3', href='https://www.swr.de/wissen/corona-pandemie-herdenimmunitaet-nicht-realistisch-100.html', target="_blank"),
+            html.A(id ='4', href='https://kurier.at/chronik/welt/omikron-deutsche-regierung-herdenimmunitaet-erst-bei-95-prozent/401864954', target="_blank"),
+            dcc.RadioItems(
+                id='variante',
+                #labelStyle={'display': 'block'},
+                value=c_varianten[0],
+                options=[{'label': x, 'value': x} for x in c_varianten]
+            )
+        ]),
     
     html.Div(
         style={'width': '100%','display':'inline-block','overflow': 'hidden'},
@@ -463,8 +494,8 @@ def display_hover(hoverData,language,tabs): # here we have to add all the other 
 
     if tabs == 'tab-1':
 
-        df_row = df_impfquote_einmal.iloc[num]
-        total_count = df_row['Gesamtbevölkerung']
+        #df_row = df_impfquote_einmal.iloc[num]
+        total_count = pt["z"]#df_row['Gesamtbevölkerung']
         # weil die zahlen so gross sind ist es uebersichtlicher wenn Kommas die tausender Positionen angeben
         #new_count = locale.format_string("%.2f", total_count, grouping = True)[0:-3]
         if language != 'en':
@@ -481,8 +512,8 @@ def display_hover(hoverData,language,tabs): # here we have to add all the other 
 
     elif tabs == 'tab-2':
 
-        df_row = df_impfquote_grundimun.iloc[num]
-        total_count = df_row['Gesamtbevölkerung']
+        #df_row = df_impfquote_grundimun.iloc[num]
+        total_count = pt["z"] #df_row['Gesamtbevölkerung']
         # weil die zahlen so gross sind ist es uebersichtlicher wenn Kommas die tausender Positionen angeben
         #new_count = locale.format_string("%.2f", total_count, grouping = True)[0:-3]
         if language != 'en':
@@ -499,8 +530,8 @@ def display_hover(hoverData,language,tabs): # here we have to add all the other 
 
     elif tabs == 'tab-3':
 
-        df_row = df_impfquote_auffrischung.iloc[num]
-        total_count = df_row['Gesamtbevölkerung']
+        #df_row = df_impfquote_auffrischung.iloc[num]
+        total_count = pt["z"]#df_row['Gesamtbevölkerung']
         # weil die zahlen so gross sind ist es uebersichtlicher wenn Kommas die tausender Positionen angeben
         #new_count = locale.format_string("%.2f", total_count, grouping = True)[0:-3]
         if language != 'en':
@@ -517,8 +548,8 @@ def display_hover(hoverData,language,tabs): # here we have to add all the other 
 
     elif tabs == 'tab-4':
 
-        df_row = df_bundes.iloc[num]
-        total_count = df_row['vaccinationsTotal']
+        #df_row = df_bundes.iloc[num]
+        total_count = pt["z"]#df_row['vaccinationsTotal']
         # weil die zahlen so gross sind ist es uebersichtlicher wenn Kommas die tausender Positionen angeben
         #new_count = locale.format_string("%.2f", total_count, grouping = True)[0:-3]
         if language == 'en':
@@ -828,25 +859,134 @@ def update_infotext(language):
     else:
         return html.H3('Hier kommt der Info Text hin')
 
+#herden div
+@app.callback(
+    Output('herd_txt', "children"),
+    Input("tabs", "value"),
+)
+def herdenimmun_h3(tabs):  
+    if tabs == 'tab-4':
+        return []
+    else:
+        return [html.H4(id = 'h3_herden'),
+            html.P(id = 'herdenimmun_text'),
+            html.A(id ='1', href='https://www.infektionsschutz.de/coronavirus/basisinformationen/varianten-des-coronavirus-sars-cov-2/', target="_blank"),
+            html.A(id ='2', href='https://www.quarks.de/gesundheit/medizin/warum-ein-impfstoff-die-pandemie-auch-2021-nicht-beendet/', target="_blank"),
+            html.A(id ='3', href='https://www.swr.de/wissen/corona-pandemie-herdenimmunitaet-nicht-realistisch-100.html', target="_blank"),
+            html.A(id ='4', href='https://kurier.at/chronik/welt/omikron-deutsche-regierung-herdenimmunitaet-erst-bei-95-prozent/401864954', target="_blank"),
+            dcc.RadioItems(id='variante',
+            #labelStyle={'display': 'block'},
+            value=c_varianten[0],
+            options=[{'label': x, 'value': x} for x in c_varianten]
+            )
+        ]
+
+#variantan radio buttons
+@app.callback(
+    Output('variante', "value"),
+    Input("language", "value"),
+)
+def herdenimmun_radio_value(value): 
+     
+    return  varianten['a'][value]
+
+@app.callback(
+    Output('variante', "options"),
+    Input("language", "value"),
+)
+def herdenimmun_radio_options(value):  
+
+    c_varianten = [varianten['a'][value],varianten['d'][value],varianten['o'][value]]
+
+    return [{'label': x, 'value': x} for x in c_varianten]
+    
+#herdenimmunität H3
+@app.callback(
+    Output('h3_herden', "children"),
+    Input("language", "value"),
+)
+def herdenimmun_h3(value):  
+    return sprache['herdenimmunität'][value]   
+
+#herdenimmunität text
+@app.callback(
+    Output('herdenimmun_text', "children"),
+    Input("language", "value"),
+)
+def herdenimmun_text(value):  
+    deutsch = 'Die Herdenimmunität gibt den Anteil der Bevölkerung an, die gegen das Virus immun sein müssen, damit sich er sich nicht mehr exponentiell weiterverbreiten kann. Diese hängt stark von der Reproduktionszahl (R0) ab, welche angibt, wie viele Menschen ein Infizierter im Schnitt ansteckt. Das RKI schätzte Anfang 2020 den R0 auf 3,3 bis 3,8, weswegen für eine Herdenimmunität von 70% ausgegangen wurde. Die Alpha-Variante B1.1.7 wies jedoch einen 1,5-fach höheren Reproduktionswert auf, wodurch die Herdenimmunität auf 80% stieg. Im Verlauf der Pandemie traten neue verschiedenen Varianten auf, darunter die Delta-Variante B.1.617.2. Im Vergleich zur Alpha-Variante, weist die Delta-Variante Mutationen auf, welche die Übertragbarkeit des Virus erhöhen. Das macht die Variante deutlich ansteckender, weshalb für einer Herdenimmunität eine Immunitätsquote von 90% erreicht werden muss. Mit der Omikron-Variante B.1.1.529 kammen eine ungewöhnlich hohe Anzahl von Mutationen mit. Darunter bekannte Mutationen, die die Übertragbarkeit des Virus erhöhen. Für Omikron wird von einer Herdenimmunität von 95% ausgegangen.'
+    englisch = 'Herd immunity is the proportion of the population that must be immune to the virus to stop it from spreading exponentially. This depends heavily on the reproduction number (R0), which indicates how many people an infected person infects on average. At the beginning of 2020, the RKI estimated the R0 at 3.3 to 3.8, which is why a herd immunity of 70% was assumed. However, the alpha variant B1.1.7 had a 1.5-fold higher reproductive value, increasing herd immunity to 80%. As the pandemic progressed, new different variants emerged, including the delta variant B.1.617.2. Compared to the alpha variant, the delta variant has mutations that increase the transmissibility of the virus. This makes the variant much more contagious, which is why an immunity rate of 90% must be achieved for herd immunity. An unusually high number of mutations came along with the omicron variant B.1.1.529. These include known mutations that increase the transmissibility of the virus. A herd immunity of 95% is assumed for omicron.'
+    türkisch = "Sürü bağışıklığı, virüsün katlanarak yayılmasını durdurmak için virüse karşı bağışık olması gereken nüfusun oranıdır. Bu, büyük ölçüde, enfekte olmuş bir kişinin ortalama olarak kaç kişiyi enfekte ettiğini gösteren üreme sayısına (R0) bağlıdır. 2020'nin başında RKI, R0'ı 3,3 ile 3,8 olarak tahmin etti, bu nedenle sürü bağışıklığının %70 olduğu varsayıldı. Bununla birlikte, alfa varyantı B1.1.7, 1.5 kat daha yüksek üreme değerine sahipti ve sürü bağışıklığını %80'e çıkardı. Pandemi ilerledikçe, delta varyantı B.1.617.2 dahil olmak üzere yeni farklı varyantlar ortaya çıktı. Alfa varyantı ile karşılaştırıldığında, delta varyantı, virüsün bulaşabilirliğini artıran mutasyonlara sahiptir. Bu, varyantı çok daha bulaşıcı hale getirir ve bu nedenle sürü bağışıklığı için %90'lık bir bağışıklık oranına ulaşılması gerekir. Omicron varyantı B.1.1.529 ile birlikte yüksek sayıda mutasyon geldi. Bunlar, virüsün bulaşabilirliğini artıran bilinen mutasyonları içerir. Omikron için %95'lik bir sürü bağışıklığı varsayılmaktadır."
+
+    hs = {'de':deutsch, 'en':englisch, 'tr': türkisch}
+    return hs[value]  
+
 #herdenimmunität tacho
 @app.callback(
     Output('herdenimmunität', "children"),
     Input("language", "value"),
-    Input("tabs", "value")
+    Input("tabs", "value"),
+    Input('variante', "value"),
+    Input("dropdown_bundeslander", "value")
 )
-def herdenimmun_anzeige(language,tabs):
-    
-    if tabs == 'tab-1':
-        return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,80],"green":[80,100]}},showCurrentValue=True, units="%", value= df_herdenimmun_einmal,label=sprache['herdenimmunität'][language],max=100,min=0)
-    
-    elif tabs == 'tab-2':
-        return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,80],"green":[80,100]}},showCurrentValue=True, units="%",value= df_herdenimmun_grund,label=sprache['herdenimmunität'][language],max=100,min=0)
+def herdenimmun_anzeige(language,tabs,variante,dropdown_bundeslander):
 
-    elif tabs == 'tab-3':
-        return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,80],"green":[80,100]}},showCurrentValue=True, units="%", value= df_herdenimmun_auffrischung,label=sprache['herdenimmunität'][language],max=100,min=0),
+    if variante == varianten['a'][language]:
+        if tabs == 'tab-1':
+            if dropdown_bundeslander:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,70], "yellow":[70,80], "green":[80,100]}},showCurrentValue=True, units="%", value= float(df_impfquote_einmal[df_impfquote_einmal['id'] == dropdown_bundeslander]['Gesamtbevölkerung']),label=sprache['herdenimmunität'][language],max=100,min=0)
+            else: 
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,70], "yellow":[70,80], "green":[80,100]}},showCurrentValue=True, units="%", value= df_herdenimmun_einmal,label=sprache['herdenimmunität'][language],max=100,min=0)
+        elif tabs == 'tab-2':
+            if dropdown_bundeslander:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,70], "yellow":[70,80], "green":[80,100]}},showCurrentValue=True, units="%",value= float(df_impfquote_grundimun[df_impfquote_grundimun['id'] == dropdown_bundeslander]['Gesamtbevölkerung']),label=sprache['herdenimmunität'][language],max=100,min=0)
+            else:     
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,70], "yellow":[70,80], "green":[80,100]}},showCurrentValue=True, units="%",value= df_herdenimmun_grund,label=sprache['herdenimmunität'][language],max=100,min=0)
+        elif tabs == 'tab-3':
+            if dropdown_bundeslander:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,70], "yellow":[70,80], "green":[80,100]}},showCurrentValue=True, units="%", value= float(df_impfquote_auffrischung[df_impfquote_auffrischung['id'] == dropdown_bundeslander]['Gesamtbevölkerung']),label=sprache['herdenimmunität'][language],max=100,min=0)
+            else: 
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,70], "yellow":[70,80], "green":[80,100]}},showCurrentValue=True, units="%", value= df_herdenimmun_auffrischung,label=sprache['herdenimmunität'][language],max=100,min=0)
+        elif tabs == 'tab-4':
+            return []
+    
+    elif variante == varianten['d'][language]:
+        if tabs == 'tab-1':
+            if dropdown_bundeslander:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,80], "yellow":[80,90], "green":[90,100]}},showCurrentValue=True, units="%", value= float(df_impfquote_einmal[df_impfquote_einmal['id'] == dropdown_bundeslander]['Gesamtbevölkerung']),label=sprache['herdenimmunität'][language],max=100,min=0)
+            else: 
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,80], "yellow":[80,90], "green":[90,100]}},showCurrentValue=True, units="%", value= df_herdenimmun_einmal,label=sprache['herdenimmunität'][language],max=100,min=0)
+        elif tabs == 'tab-2':
+            if dropdown_bundeslander:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,80], "yellow":[80,90], "green":[90,100]}},showCurrentValue=True, units="%",value= float(df_impfquote_grundimun[df_impfquote_grundimun['id'] == dropdown_bundeslander]['Gesamtbevölkerung']),label=sprache['herdenimmunität'][language],max=100,min=0)
+            else:     
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,80], "yellow":[80,90], "green":[90,100]}},showCurrentValue=True, units="%",value= df_herdenimmun_grund,label=sprache['herdenimmunität'][language],max=100,min=0)
+        elif tabs == 'tab-3':
+            if dropdown_bundeslander:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,80], "yellow":[80,90], "green":[90,100]}},showCurrentValue=True, units="%", value= float(df_impfquote_auffrischung[df_impfquote_auffrischung['id'] == dropdown_bundeslander]['Gesamtbevölkerung']),label=sprache['herdenimmunität'][language],max=100,min=0)
+            else: 
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,80], "yellow":[80,90], "green":[90,100]}},showCurrentValue=True, units="%", value= df_herdenimmun_auffrischung,label=sprache['herdenimmunität'][language],max=100,min=0)
+        elif tabs == 'tab-4':
+            return []
 
-    elif tabs == 'tab-4':
-        return []
+    else:
+        if tabs == 'tab-1':
+            if dropdown_bundeslander:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,85], "yellow":[85,95], "green":[95,100]}},showCurrentValue=True, units="%", value= float(df_impfquote_einmal[df_impfquote_einmal['id'] == dropdown_bundeslander]['Gesamtbevölkerung']),label=sprache['herdenimmunität'][language],max=100,min=0)
+            else: 
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,85], "yellow":[85,95], "green":[95,100]}},showCurrentValue=True, units="%", value= df_herdenimmun_einmal,label=sprache['herdenimmunität'][language],max=100,min=0)
+        elif tabs == 'tab-2':
+            if dropdown_bundeslander:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,85], "yellow":[85,95], "green":[95,100]}},showCurrentValue=True, units="%",value= float(df_impfquote_grundimun[df_impfquote_grundimun['id'] == dropdown_bundeslander]['Gesamtbevölkerung']),label=sprache['herdenimmunität'][language],max=100,min=0)
+            else:     
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,85], "yellow":[85,95], "green":[95,100]}},showCurrentValue=True, units="%",value= df_herdenimmun_grund,label=sprache['herdenimmunität'][language],max=100,min=0)
+        elif tabs == 'tab-3':
+            if dropdown_bundeslander:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,85], "yellow":[85,95], "green":[95,100]}},showCurrentValue=True, units="%", value= float(df_impfquote_auffrischung[df_impfquote_auffrischung['id'] == dropdown_bundeslander]['Gesamtbevölkerung']),label=sprache['herdenimmunität'][language],max=100,min=0)
+            else: 
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,85], "yellow":[85,95], "green":[95,100]}},showCurrentValue=True, units="%", value= df_herdenimmun_auffrischung,label=sprache['herdenimmunität'][language],max=100,min=0)
+        elif tabs == 'tab-4':
+            return []
 
 # #sprache updaten bei den radiobutten für das achsen wechseln bei Inzidenz_vs_Impfung
 # @app.callback(
