@@ -156,4 +156,3 @@ dependencies:
     - setuptools==60.5.0
     - shapely==1.8.0
     - urllib3==1.26.8
-prefix: /Users/leylanur/miniconda3/envs/rki_env
