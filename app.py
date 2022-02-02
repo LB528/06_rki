@@ -20,7 +20,7 @@ from dash.dependencies import Input, Output
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import dash_core_components as dcc
+#import dash_core_components as dcc
 from jupyter_dash import JupyterDash
 
 #locale.setlocale(locale.LC_ALL, '')
