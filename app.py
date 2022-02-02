@@ -272,8 +272,8 @@ fig3_labels = {
             "12-17": {'de': "12-17 Jahre", 'en': "12-17 years", 'tr': '12-17 yaş'},
             "18-59": {'de': "18-59 Jahre", 'en': "18-59 years", 'tr': '18-59 yaş'},
             "60+": {'de': "60+ Jahre", 'en': "60+ years", 'tr': '60+ yaş'},
-            "yaxis_title": {'de': 'Art der Impfquote', 'en': 'Type of vaccination rate', 'tr': "Aşılama oranın türü"},
-            "xaxis_title": {'de': 'Impfquote in Prozent (%)', 'en': 'Vaccination rate in percent (%)', 'tr': 'Aşılama oranı yüzde olarak (%)'},
+            "xaxis_title": {'de': 'Art der Impfquote', 'en': 'Type of vaccination rate', 'tr': "Aşılama oranın türü"},
+            "yaxis_title": {'de': 'Impfquote in Prozent (%)', 'en': 'Vaccination rate in percent (%)', 'tr': 'Aşılama oranı yüzde olarak (%)'},
             #'title': {'de': 'Impfquote nach Altersgruppe in Berlin', 'en':'Vaccination rate as per age group in Berlin', 'tr': "Berlin'de yaş grublarına göre aşılama oranı"}, #hier muss berlin dann auch mit statename ersetzt werden
             "impfquote": {
             'de': ['Mindestens einmal geimpft', 'Grundimmunisiert (vollständig geimpft)', 'Auffrischimpfung'], 'en': ['At least once vaccinated', 'Initial immunization (fully vaccinated)', 'Booster vaccination'], 'tr': ['En az bir kez aşılanmış', 'Genel bağışıklık (tam aşılı)', 'Üçüncü aşı']
@@ -371,7 +371,7 @@ app.layout = html.Div(children=[
 
     html.H2(id = 'subtitle',
             children= [],
-            style={'textAlign': 'center'}),
+            style={'textAlign': 'center', 'margin-bottom': '30px'}),
 
     #html.Img(src='data:image/png;base64,{}'.format(encoded_image)),
 
@@ -450,7 +450,7 @@ app.layout = html.Div(children=[
         ]
     ),
     html.Div(
-        style={'width': '100%','height': '100%','display':'inline-block',},
+        style={'width': '100%','height': '100%','display':'inline-block', 'margin-top': '30px'},
         children=[
             dcc.Graph(id="agegroups",figure=fig3, clear_on_unhover=True, style={'width': '100%', 'height': '70vh'}),
             #dcc.Tooltip(id="tooltip_inf"),
@@ -505,7 +505,7 @@ app.layout = html.Div(children=[
     ),
     html.Div(
         id = 'data_version',
-        style={'width': '50%','height': '100%','display':'inline-block', 'float':'right', 'padding': '20px 20px'},
+        style={'width': '50%','height': '100%','display':'inline-block', 'float':'right'},
         children=[
             html.Span(str(dataversion_RKI)),
         ]
@@ -523,7 +523,7 @@ app.layout = html.Div(children=[
             ),
 
         ],
-        style={'width': '15%', 'display': 'inline-block'}),
+        style={'width': '15%', 'display': 'inline-block', 'margin-top': '30px'}),
     ], style={
         'padding': '20px 20px'
     }),
@@ -860,7 +860,7 @@ def update_fig2(language):
         fig2.data[idx].hovertemplate = name
 
     #the colors for figure 2 are defined per color palette for color blind people: https://davidmathlogic.com/colorblind/#%23D81B60-%231E88E5-%23FFC107-%23004D40
-    new_colors = ['#d81b60', '#1e88e5', '#ffc107']
+    new_colors = ['#22d81b', '#1424e8', '#e807ff']
 
     for idx, color in enumerate(new_colors):
         fig2.data[idx].line.color = color
@@ -930,7 +930,17 @@ def update_fig3(language, dropdown_bundeslander):
 )
 def update_infotext(language):
     if language == 'de':
-        return html.H3('Hier kommt der Info Text hin')
+        return [
+        html.Br(),
+        html.H3('COVID-19 und der Impffortschritt in Deutschland'),
+        html.P('COVID-19 ist eine hochansteckende Krankheit die durch das Sars-Cov-2 Virus verursacht wird und der Grund für die derzeitige weltweite Pandemie ist. Der Virus ist in Wuhan, China entstanden und wurde dort zunächst entdeckt. Impfstoffe gegen das Virus wurden Ende 2020 in Deutschland zugelassen, sodass sich die Menschen vor dem Virus und andere Menschen vor sich schützen können. Dabei wird ein Versuch unternommen die Gesamtbevölkerung in Deutschland zu immunisieren, indem man einen Anteil der Bevölkerung impft (Herdenimmunität). Zu den bekannten Impfstoffen gehören der von BioNTech/Pfizer, der seit 26.12.2020 in Deutschland verfügbar ist, der von Moderna Biotech seit 14.01.2021, der von AstraZeneca seit 08.02.2021, der von Janssen seit 26.04.2021 und der von Novavax, der jedoch bisher nicht in Deutschland verfügbar ist (wurde jedoch angekündigt).'),
+        html.Br(),
+        html.P('Im rechten Diagramm sieht man den Impffortschritt der Erst-, Zweit- und Drittimpfungen seit Januar 2021 in Deutschland. Daran ist ebenfalls deutlich zu erkennen, ab wann die Zweit- und Booster-Impfungen erst einsetzten.'),
+        html.Br(),
+        html.P('Das Diagramm zu Impfquote nach Altergruppe in ganz Deutschland und für das jeweils oben ausgewählte Bundesland ist unter diesem Text zu sehen. Hier kann man die Aufteilung in die drei Kategorien "Mindestens Einmal Geimpft", "Grundimmunisiert", also je nach Impfstoff ein- oder zweimal geimpft, und "Auffrischimpung", welche ebenfalls je nach Impfstoff die zweite oder dritte Impfung, die sogenannte Booster-Impfung ist. Leider wurde vom Robert Koch Institut die Altersgruppe 5-11 Jahre für die Auffrischimpfung nicht weiter erhoben.'),
+        html.Br(),
+        html.P('Im unten stehenden Diagramm zur Hospitalisierungsrate wird die Anzahl hospitalisierter COVID-19 Fälle in Prozent und aufgeschlüsselt in die verschiedenenen Altersgruppen und Impfstati widergespiegelt. Auch hier sieht man die Graphen für die Fälle mit Auffrischimpfung erst später einsetzen, da vor dem entsprechenden Zeitpunkt noch nicht viele Auffrischimpfungen erfolgten.')
+        ]
     elif language == 'en':
         return html.H3('Hier kommt der Info Text hin')
     else:
@@ -991,7 +1001,7 @@ def herdenimmun_h3(value):
     Input("language", "value"),
 )
 def herdenimmun_text(value):
-    deutsch = 'Die Herdenimmunität gibt den Anteil der Bevölkerung an, die gegen das Virus immun sein müssen, damit sich er sich nicht mehr exponentiell weiterverbreiten kann. Diese hängt stark von der Reproduktionszahl (R0) ab, welche angibt, wie viele Menschen ein Infizierter im Schnitt ansteckt. Das RKI schätzte Anfang 2020 den R0 auf 3,3 bis 3,8, weswegen für eine Herdenimmunität von 70% ausgegangen wurde. Die Alpha-Variante B1.1.7 wies jedoch einen 1,5-fach höheren Reproduktionswert auf, wodurch die Herdenimmunität auf 80% stieg. Im Verlauf der Pandemie traten neue verschiedenen Varianten auf, darunter die Delta-Variante B.1.617.2. Im Vergleich zur Alpha-Variante, weist die Delta-Variante Mutationen auf, welche die Übertragbarkeit des Virus erhöhen. Das macht die Variante deutlich ansteckender, weshalb für einer Herdenimmunität eine Immunitätsquote von 90% erreicht werden muss. Mit der Omikron-Variante B.1.1.529 kammen eine ungewöhnlich hohe Anzahl von Mutationen mit. Darunter bekannte Mutationen, die die Übertragbarkeit des Virus erhöhen. Für Omikron wird von einer Herdenimmunität von 95% ausgegangen.'
+    deutsch = 'Die Herdenimmunität gibt den Anteil der Bevölkerung an, der gegen das Virus immun sein muss, damit dieser sich nicht mehr exponentiell weiterverbreiten kann. Die Herdenimmunität hängt stark von der Reproduktionszahl (R0) ab, welche angibt, wie viele Menschen ein Infizierter im Schnitt ansteckt. Das RKI schätzte Anfang 2020 den R0 auf 3,3 bis 3,8, weswegen für eine Herdenimmunität von 70% ausgegangen wurde. Die Alpha-Variante B1.1.7 wies jedoch einen 1,5-fach höheren Reproduktionswert auf, wodurch die Herdenimmunität auf 80% stieg. Im Verlauf der Pandemie traten neue verschiedenen Varianten auf, darunter die Delta-Variante B.1.617.2. Im Vergleich zur Alpha-Variante, weist die Delta-Variante Mutationen auf, welche die Übertragbarkeit des Virus erhöhen. Das macht die Variante deutlich ansteckender, weshalb für einer Herdenimmunität eine Immunitätsquote von 90% erreicht werden muss. Mit der Omikron-Variante B.1.1.529 kammen eine ungewöhnlich hohe Anzahl von Mutationen mit. Darunter bekannte Mutationen, die die Übertragbarkeit des Virus erhöhen. Für Omikron wird von einer Herdenimmunität von 95% ausgegangen.'
     englisch = 'Herd immunity is the proportion of the population that must be immune to the virus to stop it from spreading exponentially. This depends heavily on the reproduction number (R0), which indicates how many people an infected person infects on average. At the beginning of 2020, the RKI estimated the R0 at 3.3 to 3.8, which is why a herd immunity of 70% was assumed. However, the alpha variant B1.1.7 had a 1.5-fold higher reproductive value, increasing herd immunity to 80%. As the pandemic progressed, new different variants emerged, including the delta variant B.1.617.2. Compared to the alpha variant, the delta variant has mutations that increase the transmissibility of the virus. This makes the variant much more contagious, which is why an immunity rate of 90% must be achieved for herd immunity. An unusually high number of mutations came along with the omicron variant B.1.1.529. These include known mutations that increase the transmissibility of the virus. A herd immunity of 95% is assumed for omicron.'
     türkisch = "Sürü bağışıklığı, virüsün katlanarak yayılmasını durdurmak için virüse karşı bağışık olması gereken nüfusun oranıdır. Bu, büyük ölçüde, enfekte olmuş bir kişinin ortalama olarak kaç kişiyi enfekte ettiğini gösteren üreme sayısına (R0) bağlıdır. 2020'nin başında RKI, R0'ı 3,3 ile 3,8 olarak tahmin etti, bu nedenle sürü bağışıklığının %70 olduğu varsayıldı. Bununla birlikte, alfa varyantı B1.1.7, 1.5 kat daha yüksek üreme değerine sahipti ve sürü bağışıklığını %80'e çıkardı. Pandemi ilerledikçe, delta varyantı B.1.617.2 dahil olmak üzere yeni farklı varyantlar ortaya çıktı. Alfa varyantı ile karşılaştırıldığında, delta varyantı, virüsün bulaşabilirliğini artıran mutasyonlara sahiptir. Bu, varyantı çok daha bulaşıcı hale getirir ve bu nedenle sürü bağışıklığı için %90'lık bir bağışıklık oranına ulaşılması gerekir. Omicron varyantı B.1.1.529 ile birlikte yüksek sayıda mutasyon geldi. Bunlar, virüsün bulaşabilirliğini artıran bilinen mutasyonları içerir. Omikron için %95'lik bir sürü bağışıklığı varsayılmaktadır."
 
