@@ -204,4 +204,3 @@ dependencies:
     - shapely==1.8.0
     - tornado==6.1
     - typed-ast==1.5.2
-prefix: /Users/leylanur/miniconda3/envs/rki_env
