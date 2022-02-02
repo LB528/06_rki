@@ -1,4 +1,5 @@
 from distutils.log import debug
+from tkinter.ttk import Style
 import pandas as pd
 import numpy as np
 import geopandas as gpd
@@ -19,12 +20,15 @@ from dash.dependencies import Input, Output
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from dash import Input, Output, State, html
+import dash_core_components as dcc
+from jupyter_dash import JupyterDash
+
 #locale.setlocale(locale.LC_ALL, '')
 
 app = dash.Dash(
     external_stylesheets=[dbc.themes.BOOTSTRAP]
 )
+# app = JupyterDash(external_stylesheets=[dbc.themes.SLATE])
 
 #pictogramm laden?
 #image_filename = 'impf_pic.png' # replace with your own image
@@ -121,9 +125,6 @@ id_bundesland = {
     '15': {'de': 'Schleswig-Holstein', 'en': 'Schleswig Holstein', 'tr': 'Schleswig Holstein'}
 }
 
-# data for hospitalization
-hospitalisiert = pd.read_excel(r'data/Inzidenz_Impfstatus.xlsx', sheet_name='Hospitalisierte_nach_Impfstatus', header=3)
-hospitalisiert = pd.DataFrame(hospitalisiert, columns= hospitalisiert.columns)
 
 # sort dict for drop down menu
 def sort_id_bundesland(bundesland_dict,language):
@@ -166,6 +167,48 @@ df_bundes = df[0].copy()
 df_bundes.drop([2],inplace=True) #row DE-BUND dropen
 df_bundes['id'] = ['10','9','6','7','2','4','0','11','1','3','5','15','8','12','13','14']
 
+#Hospitalisierungsrate Daten
+
+hospitalisiert = pd.read_excel(r'data/Inzidenz_Impfstatus.xlsx', sheet_name='Hospitalisierte_nach_Impfstatus', header=3)
+df = pd.DataFrame(hospitalisiert, columns= hospitalisiert.columns)
+
+meldewoche = df['Meldewoche']
+meldejahr = df['Meldejahr']
+
+timex = []
+for i in range(0, len(df['Meldewoche'])):
+    timex.append(str(df['Meldewoche'][i])) #+ ' ' + str(df['Meldejahr'][i]))
+
+gru1 = df['Grundimmunisierte  12-17 Jahre']
+gru2 = df['Grundimmunisierte  18-59 Jahre']
+gru3 = df['Grundimmunisierte 60+ Jahre']
+
+ung1 = df['Ungeimpfte 12-17 Jahre']
+ung2 = df['Ungeimpfte 18-59 Jahre']
+ung3 = df['Ungeimpfte 60+ Jahre']
+
+booster2 = df['Mit Auffrischimpfung 18-59 Jahre']
+booster3 = df['Mit Auffrischimpfung 60+ Jahre']
+
+df['time'] = timex
+x = df['time']
+x[0] = x[0] + '\n' + str(df['Meldejahr'][0])
+
+for i in range(1, len(x)):
+    if df['Meldewoche'][i] == 1:
+        x[i] = x[i] + '\n' + str(df['Meldejahr'][i])
+
+dropdown_hosp = ['Total', 'Ungeimpfte', 'Grundimmunisierte', 'Mit Auffrischimpfung']
+timex = x
+
+#corona varianten
+c_varianten = ['Alpha (B.1.1.7): 80%', 'Delta (B.1.617.2): 90%', 'Omikron (B.1.1.529): 95%']
+varianten = {
+    'a': {'de':'Alpha (B.1.1.7): 80%', 'en': 'Alpha (B.1.1.7): 80%', 'tr':'Alfa (B.1.1.7): %80'},
+    'd': {'de':'Delta (B.1.617.2): 90%', 'en': 'Delta (B.1.617.2): 90%', 'tr':'Delta (B.1.617.2): %90'},
+    'o': {'de':'Omikron (B.1.1.529): 95%', 'en':'Omicron (B.1.1.529): 95%', 'tr':'Omicron (B.1.1.529): %95'}
+}
+
 #different languages
 sprache = {
     'h1': {'de': 'Impfquotenmonitoring', 'en': 'Vaccination rate monitoring', 'tr': 'Aşı oran takibi'},
@@ -176,7 +219,7 @@ sprache = {
     'impfquote_2mal': {'de': 'Vollständig geimpft', 'en': 'Fully vaccinated', 'tr': 'Tam aşılanmış'},
     'impfquote_einmal': {'de': 'Einmal geimpft', 'en': 'Vaccinated once', 'tr': 'Bir kez aşılanmış'},
     'impfquote_auffrischung': {'de': 'Auffrischungsimpfung', 'en': 'Booster vaccination', 'tr': 'Üçüncü kez aşılanmışlar'},
-    'herdenimmunität': {'de': 'Herdenimmunität', 'en':'herd immunity', 'tr': 'sürü bağışıklığı'}
+    'herdenimmunität': {'de': 'Herdenimmunität', 'en':'Herd immunity', 'tr': 'Sürü bağışıklığı'}
 
 }
 
@@ -221,7 +264,7 @@ fig2.update_layout(
     yaxis_range=[0,90000000])
 
 fig2.update_traces(mode="lines", hovertemplate=None)
-fig2.update_layout(hovermode="x")
+fig2.update_layout(hovermode="closest")
 
 #figure mit impfquote nach altersgruppen
 fig3_labels = {
@@ -285,147 +328,20 @@ fig3.update_layout(
     yaxis_title="Impfquote in Prozent (%)", #andere Sprachen fehlen noch
     )
 
-fig4_labels = {"date": {'de': "Datum", 'en': "Date", 'tr': 'Tarih'},
-            "inzidenz": {'de': "Inzidenzen" , 'en': "incidences", 'tr': 'vakalar'},
-            "impfdosen": {'de': "Impfstoffdosen", 'en': "vaccine doses", 'tr': 'aşı dozları'},
-            "yaxis1_title": {'de': 'COVID-19 Inzidenz', 'en': 'COVID-19 incidence', 'tr': "COVID-19 vakaları"},
-            "yaxis2_title": {'de': 'Verabreichte Impfdosen', 'en': 'Doses of vaccine administered', 'tr': "Uygulanan aşı dozları"},
-            'title': {'de': 'Zusammenhang zwischen Impfquote und Inzidenz', 'en':'Relationship between vaccination rate and incidence', 'tr': "Aşılama oranın ile vaka sayının arasındaki ilişki"},
-            'y0': {'de': 'Anzahl', 'en':'Count', 'tr': "Bazı"}
-}
+# fig4_labels = {"date": {'de': "Datum", 'en': "Date", 'tr': 'Tarih'},
+#             "inzidenz": {'de': "Inzidenzen" , 'en': "incidences", 'tr': 'vakalar'},
+#             "impfdosen": {'de': "Impfstoffdosen", 'en': "vaccine doses", 'tr': 'aşı dozları'},
+#             "yaxis1_title": {'de': 'COVID-19 Inzidenz', 'en': 'COVID-19 incidence', 'tr': "COVID-19 vakaları"},
+#             "yaxis2_title": {'de': 'Verabreichte Impfdosen', 'en': 'Doses of vaccine administered', 'tr': "Uygulanan aşı dozları"},
+#             'title': {'de': 'Zusammenhang zwischen Impfquote und Inzidenz', 'en':'Relationship between vaccination rate and incidence', 'tr': "Aşılama oranın ile vaka sayının arasındaki ilişki"},
+#             'y0': {'de': 'Anzahl', 'en':'Count', 'tr': "Bazı"}
+# }
 
-radio_IvsI = {'titel': {'de':'y-Achsen Einstellung: ', 'en': 'y-axis adjustment: ', 'tr': 'y eksen ayarı: '},
-              'y1': {'de':'y-Achsen Einstellung: ', 'en': 'y-axis adjustment: ', 'tr': 'y eksen ayarı: '},
-              'y2': {'de':'mit zweiter y-Achse ', 'en': 'with a second y-axis ', 'tr': 'ikinci y ekseni ile '},
-              'y0': {'de':'nur mit einer y-Achse ', 'en': 'only with one y-axis ', 'tr': 'sadece bir y ekseni ile '}
-    }
-
-# hospitalization plot -------------------------------------------------------
-
-
-# prepare df for hospitalization
-
-meldewoche = hospitalisiert['Meldewoche']
-meldejahr = hospitalisiert['Meldejahr']
-
-gru1 = hospitalisiert['Grundimmunisierte  12-17 Jahre']
-gru2 = hospitalisiert['Grundimmunisierte  18-59 Jahre']
-gru3 = hospitalisiert['Grundimmunisierte 60+ Jahre']
-
-ung1 = hospitalisiert['Ungeimpfte 12-17 Jahre']
-ung2 = hospitalisiert['Ungeimpfte 18-59 Jahre']
-ung3 = hospitalisiert['Ungeimpfte 60+ Jahre']
-
-booster2 = hospitalisiert['Mit Auffrischimpfung 18-59 Jahre']
-booster3 = hospitalisiert['Mit Auffrischimpfung 60+ Jahre']
-
-# start hospitalization figure
-figHos=go.Figure()
-
-#add line for each age group and vaccination status
-figHos.add_trace(
-    go.Scatter(x=meldewoche,
-               y=ung1,
-               name='Ungeimpfte 12-17 Jahre',
-               # line=dict(color="#f01515",
-               # visible=True
-               ))
-figHos.add_trace(
-    go.Scatter(x=meldewoche,
-               y=ung2,
-               name='Ungeimpfte 18-59 Jahre',
-               # line=dict(color="#f07c15",
-               # visible=True
-               ))
-figHos.add_trace(
-    go.Scatter(x=meldewoche,
-               y=ung3,
-               name='Ungeimpfte 60+ Jahre',
-               # line=dict(color="#ede60b",
-               # visible=True
-               ))
-figHos.add_trace(
-    go.Scatter(x=meldewoche,
-               y=gru1,
-               name='Grundimmunisierte 12-17 Jahre',
-               # line=dict(color="#91ed0b",
-               # visible=True
-               ))
-figHos.add_trace(
-    go.Scatter(x=meldewoche,
-                y=gru2,
-                name='Grundimmunisierte 18-59 Jahre',
-                # line=dict(color="#0c9e1b",
-               # visible=True
-               ))
-figHos.add_trace(
-    go.Scatter(x=meldewoche,
-               y=gru3,
-               name='Grundimmunisierte 60+ Jahre',
-               # line=dict(color="#0c9e7f",
-               # visible=True
-               ))
-
-figHos.add_trace(
-    go.Scatter(x=meldewoche,
-               y=booster2,
-               name='Mit Auffrischimpfung 18-59 Jahre',
-               # line=dict(color="#15d6e2",
-               # visible=True
-               ))
-figHos.add_trace(
-    go.Scatter(x=meldewoche,
-               y=booster3,
-               name='Mit Auffrischimpfung 60+ Jahre',
-               # line=dict(color="#1553e2",
-               # visible=True
-               ))
-
-updatemenu=[]
-buttons=[]
-# add buttons to select column in df
-# and the associated linear model in df_reg
-
-buttons = list([dict(args=[{'y':[hospitalisiert['Ungeimpfte 12-17 Jahre'], hospitalisiert['Ungeimpfte 18-59 Jahre'], hospitalisiert['Ungeimpfte 60+ Jahre'], hospitalisiert['Grundimmunisierte  12-17 Jahre'], hospitalisiert['Grundimmunisierte  18-59 Jahre'], hospitalisiert['Grundimmunisierte 60+ Jahre'], hospitalisiert['Mit Auffrischimpfung 18-59 Jahre'], hospitalisiert['Mit Auffrischimpfung 60+ Jahre']]}],
-                                   label="Total",
-                                   method="update"
-                                   ),
-                dict(args=[{'y':[hospitalisiert['Ungeimpfte 12-17 Jahre'], hospitalisiert['Ungeimpfte 18-59 Jahre'], hospitalisiert['Ungeimpfte 60+ Jahre']]}],
-                                   label="Ungeimpfte",
-                                   method="update"
-                                   ),
-                dict(args=[{'y':[hospitalisiert['Grundimmunisierte  12-17 Jahre'], hospitalisiert['Grundimmunisierte  18-59 Jahre'], hospitalisiert['Grundimmunisierte 60+ Jahre']]}],
-                                   label="Grundimmunisierte",
-                                   method="update"
-                                   ),
-                dict(args=[{'y':[hospitalisiert['Mit Auffrischimpfung 18-59 Jahre'], hospitalisiert['Mit Auffrischimpfung 60+ Jahre']]}],
-                                   label="Mit Auffrischimpfung",
-                                   method="update"
-                                   ),
-])
-
-    # some adjustments to the updatemenus
-updatemenu=[]
-your_menu=dict()
-updatemenu.append(your_menu)
-
-updatemenu[0]['buttons']=buttons
-updatemenu[0]['direction']='down'
-updatemenu[0]['showactive']=True
-
-# Aesthetics
-figHos.update_layout(hovermode = 'x unified')
-figHos.update_layout(showlegend=True, legend=dict(x=1,y=0.85), updatemenus=updatemenu)
-figHos.update_layout(uirevision='constant')
-figHos.update_layout(template='plotly_dark',
-                  plot_bgcolor='#272B30',
-                  paper_bgcolor='#272B30')
-figHos.update_layout(  xaxis_title="Meldewoche",
-                    yaxis_title="Prozent der Hospitalisierten"
-                    )
-figHos.update_layout(title = "Hospitalisierungsrate nach Impfstatus in Deutschalnd")
-
-
+# radio_IvsI = {'titel': {'de':'y-Achsen Einstellung: ', 'en': 'y-axis adjustment: ', 'tr': 'y eksen ayarı: '},
+#               'y1': {'de':'y-Achsen Einstellung: ', 'en': 'y-axis adjustment: ', 'tr': 'y eksen ayarı: '},
+#               'y2': {'de':'mit zweiter y-Achse ', 'en': 'with a second y-axis ', 'tr': 'ikinci y ekseni ile '},
+#               'y0': {'de':'nur mit einer y-Achse ', 'en': 'only with one y-axis ', 'tr': 'sadece bir y ekseni ile '}
+#     }
 
 app.layout = html.Div(children=[
     #titel and radio RadioItems
@@ -469,7 +385,29 @@ app.layout = html.Div(children=[
 
     dcc.Tabs(id="tabs", value='tab-1', children=[]),
     html.Br(),
-    html.Div(id ='herdenimmunität', children=[]),
+    html.Div(style={'margin': '10px', 'width': '50%', 'float': 'left', 'display': 'inline-block'},
+        children = [
+            html.Div(id ='herdenimmunität',
+                style={'float': 'right', 'display': 'inline-block'},
+                children=[]
+        ),
+    ]),
+    html.Div(id = 'herd_txt',
+        style={'margin': '10px', 'width': '45%', 'float': 'right', 'display': 'inline-block'},
+        children = [
+            html.H3(id = 'h3_herden'),
+            html.P(id = 'herdenimmun_text', style={'text-align': 'justify', 'font-size': '9px'}),
+            html.A(id ='1', href='https://www.infektionsschutz.de/coronavirus/basisinformationen/varianten-des-coronavirus-sars-cov-2/', target="_blank"),
+            html.A(id ='2', href='https://www.quarks.de/gesundheit/medizin/warum-ein-impfstoff-die-pandemie-auch-2021-nicht-beendet/', target="_blank"),
+            html.A(id ='3', href='https://www.swr.de/wissen/corona-pandemie-herdenimmunitaet-nicht-realistisch-100.html', target="_blank"),
+            html.A(id ='4', href='https://kurier.at/chronik/welt/omikron-deutsche-regierung-herdenimmunitaet-erst-bei-95-prozent/401864954', target="_blank"),
+            dcc.RadioItems(
+                id='variante',
+                #labelStyle={'display': 'block'},
+                value=c_varianten[0],
+                options=[{'label': x, 'value': x} for x in c_varianten]
+            )
+        ]),
 
     html.Div(
         style={'width': '100%','display':'inline-block','overflow': 'hidden'},
@@ -518,31 +456,41 @@ app.layout = html.Div(children=[
             #dcc.Tooltip(id="tooltip_inf"),
         ]
     ),
-    html.Div(id = 'Inzidenz_vs_Impfung',
-        style={'width': '100%','height': '100%','display':'inline-block'},
-        children=[
-            dcc.Graph(id="inzidens"),
-            html.Div(
-                style={'width': '94%','height': '100%','float':'right'},
-                children = [html.P(id='P_radio_IvsI'),
-                dcc.RadioItems(
-                id='radio',
-                labelStyle={'display': 'block'},
-                value=radio_IvsI['y2']['de'] + 'verabreichte Impfdosen',
-                options=[{'label': x, 'value': x} for x in [radio_IvsI['y0']['de'], radio_IvsI['y2']['de']]]#[{'label': x, 'value': x} for x in [radio_IvsI['y0']['de'] + 'COVID-19 Inzidenz', radio_IvsI['y2']['de'] + 'verabreichte Impfdosen']
-                )],
-            ),
-            html.Br(),
-        ]
-    ),
 
-    html.Div(
-        style={'width': '100%','height': '100%','display':'inline-block',},
-        children=[
-            dcc.Graph(id="hospitalisierung", figure=figHos, style={'width': '100%', 'height': '70vh'}),
-        ]
-    ),
-
+    # html.Div([
+    #
+    #     html.Div([
+    #         dcc.Dropdown(
+    #             id='hospitalisation',
+    #             options=[{'label': i, 'value': i} for i in dropdown_hosp],
+    #             value='Total'
+    #         ),
+    #
+    #     ],
+    #     style={'width': '30%', 'display': 'inline-block'}),
+    # ]),
+    # html.Div([
+    #     dcc.Graph(
+    #         id='hospitalisation_plot',
+    #         # hoverData={'points': [{'customdata': 'Japan'}]}
+    #     )],),
+    # html.Div(id = 'Inzidenz_vs_Impfung',
+    #     style={'width': '100%','height': '100%','display':'inline-block'},
+    #     children=[
+    #         dcc.Graph(id="inzidens"),
+    #         html.Div(
+    #             style={'width': '94%','height': '100%','float':'right'},
+    #             children = [html.P(id='P_radio_IvsI'),
+    #             dcc.RadioItems(
+    #             id='radio',
+    #             labelStyle={'display': 'block'},
+    #             value=radio_IvsI['y2']['de'] + 'verabreichte Impfdosen',
+    #             options=[{'label': x, 'value': x} for x in [radio_IvsI['y0']['de'], radio_IvsI['y2']['de']]]#[{'label': x, 'value': x} for x in [radio_IvsI['y0']['de'] + 'COVID-19 Inzidenz', radio_IvsI['y2']['de'] + 'verabreichte Impfdosen']
+    #             )],
+    #         ),
+    #         html.Br(),
+    #     ]
+    # ),
     html.Br(),
     html.Br(),
     html.Div(
@@ -557,11 +505,33 @@ app.layout = html.Div(children=[
     ),
     html.Div(
         id = 'data_version',
-        style={'width': '50%','height': '100%','display':'inline-block', 'float':'right'},
+        style={'width': '50%','height': '100%','display':'inline-block', 'float':'right', 'padding': '20px 20px'},
         children=[
             html.Span(str(dataversion_RKI)),
         ]
     ),
+    html.Div([
+
+        html.Div([
+            dcc.Dropdown(
+                id='hospitalisation',
+                options=[{'label': i, 'value': i} for i in dropdown_hosp],
+                value='Total',
+                placeholder = 'Wähle Gruppe',
+                # menu_variant="dark",
+
+            ),
+
+        ],
+        style={'width': '15%', 'display': 'inline-block'}),
+    ], style={
+        'padding': '20px 20px'
+    }),
+    html.Div([
+        dcc.Graph(
+            id='hospitalisation_plot',
+            # hoverData={'points': [{'customdata': 'Japan'}]}
+        )],),
 ])
 
 #tabs
@@ -601,8 +571,8 @@ def display_hover(hoverData,language,tabs): # here we have to add all the other 
 
     if tabs == 'tab-1':
 
-        df_row = df_impfquote_einmal.iloc[num]
-        total_count = df_row['Gesamtbevölkerung']
+        #df_row = df_impfquote_einmal.iloc[num]
+        total_count = pt["z"]#df_row['Gesamtbevölkerung']
         # weil die zahlen so gross sind ist es uebersichtlicher wenn Kommas die tausender Positionen angeben
         #new_count = locale.format_string("%.2f", total_count, grouping = True)[0:-3]
         if language != 'en':
@@ -619,8 +589,8 @@ def display_hover(hoverData,language,tabs): # here we have to add all the other 
 
     elif tabs == 'tab-2':
 
-        df_row = df_impfquote_grundimun.iloc[num]
-        total_count = df_row['Gesamtbevölkerung']
+        #df_row = df_impfquote_grundimun.iloc[num]
+        total_count = pt["z"] #df_row['Gesamtbevölkerung']
         # weil die zahlen so gross sind ist es uebersichtlicher wenn Kommas die tausender Positionen angeben
         #new_count = locale.format_string("%.2f", total_count, grouping = True)[0:-3]
         if language != 'en':
@@ -637,8 +607,8 @@ def display_hover(hoverData,language,tabs): # here we have to add all the other 
 
     elif tabs == 'tab-3':
 
-        df_row = df_impfquote_auffrischung.iloc[num]
-        total_count = df_row['Gesamtbevölkerung']
+        #df_row = df_impfquote_auffrischung.iloc[num]
+        total_count = pt["z"]#df_row['Gesamtbevölkerung']
         # weil die zahlen so gross sind ist es uebersichtlicher wenn Kommas die tausender Positionen angeben
         #new_count = locale.format_string("%.2f", total_count, grouping = True)[0:-3]
         if language != 'en':
@@ -655,8 +625,8 @@ def display_hover(hoverData,language,tabs): # here we have to add all the other 
 
     elif tabs == 'tab-4':
 
-        df_row = df_bundes.iloc[num]
-        total_count = df_row['vaccinationsTotal']
+        #df_row = df_bundes.iloc[num]
+        total_count = pt["z"]#df_row['vaccinationsTotal']
         # weil die zahlen so gross sind ist es uebersichtlicher wenn Kommas die tausender Positionen angeben
         #new_count = locale.format_string("%.2f", total_count, grouping = True)[0:-3]
         if language == 'en':
@@ -903,7 +873,7 @@ def update_fig2(language):
         yaxis_range=[0,90000000])
 
     fig2.update_traces(mode="lines", hovertemplate=None)
-    fig2.update_layout(hovermode="x")
+    fig2.update_layout(hovermode="closest")
 
     return fig2
 
@@ -966,135 +936,281 @@ def update_infotext(language):
     else:
         return html.H3('Hier kommt der Info Text hin')
 
+#herden div
+@app.callback(
+    Output('herd_txt', "children"),
+    Input("tabs", "value"),
+)
+def herdenimmun_h3(tabs):
+    if tabs == 'tab-4':
+        return []
+    else:
+        return [html.H4(id = 'h3_herden'),
+            html.P(id = 'herdenimmun_text'),
+            html.A(id ='1', href='https://www.infektionsschutz.de/coronavirus/basisinformationen/varianten-des-coronavirus-sars-cov-2/', target="_blank"),
+            html.A(id ='2', href='https://www.quarks.de/gesundheit/medizin/warum-ein-impfstoff-die-pandemie-auch-2021-nicht-beendet/', target="_blank"),
+            html.A(id ='3', href='https://www.swr.de/wissen/corona-pandemie-herdenimmunitaet-nicht-realistisch-100.html', target="_blank"),
+            html.A(id ='4', href='https://kurier.at/chronik/welt/omikron-deutsche-regierung-herdenimmunitaet-erst-bei-95-prozent/401864954', target="_blank"),
+            dcc.RadioItems(id='variante',
+            #labelStyle={'display': 'block'},
+            value=c_varianten[0],
+            options=[{'label': x, 'value': x} for x in c_varianten]
+            )
+        ]
+
+#variantan radio buttons
+@app.callback(
+    Output('variante', "value"),
+    Input("language", "value"),
+)
+def herdenimmun_radio_value(value):
+
+    return  varianten['a'][value]
+
+@app.callback(
+    Output('variante', "options"),
+    Input("language", "value"),
+)
+def herdenimmun_radio_options(value):
+
+    c_varianten = [varianten['a'][value],varianten['d'][value],varianten['o'][value]]
+
+    return [{'label': x, 'value': x} for x in c_varianten]
+
+#herdenimmunität H3
+@app.callback(
+    Output('h3_herden', "children"),
+    Input("language", "value"),
+)
+def herdenimmun_h3(value):
+    return sprache['herdenimmunität'][value]
+
+#herdenimmunität text
+@app.callback(
+    Output('herdenimmun_text', "children"),
+    Input("language", "value"),
+)
+def herdenimmun_text(value):
+    deutsch = 'Die Herdenimmunität gibt den Anteil der Bevölkerung an, die gegen das Virus immun sein müssen, damit sich er sich nicht mehr exponentiell weiterverbreiten kann. Diese hängt stark von der Reproduktionszahl (R0) ab, welche angibt, wie viele Menschen ein Infizierter im Schnitt ansteckt. Das RKI schätzte Anfang 2020 den R0 auf 3,3 bis 3,8, weswegen für eine Herdenimmunität von 70% ausgegangen wurde. Die Alpha-Variante B1.1.7 wies jedoch einen 1,5-fach höheren Reproduktionswert auf, wodurch die Herdenimmunität auf 80% stieg. Im Verlauf der Pandemie traten neue verschiedenen Varianten auf, darunter die Delta-Variante B.1.617.2. Im Vergleich zur Alpha-Variante, weist die Delta-Variante Mutationen auf, welche die Übertragbarkeit des Virus erhöhen. Das macht die Variante deutlich ansteckender, weshalb für einer Herdenimmunität eine Immunitätsquote von 90% erreicht werden muss. Mit der Omikron-Variante B.1.1.529 kammen eine ungewöhnlich hohe Anzahl von Mutationen mit. Darunter bekannte Mutationen, die die Übertragbarkeit des Virus erhöhen. Für Omikron wird von einer Herdenimmunität von 95% ausgegangen.'
+    englisch = 'Herd immunity is the proportion of the population that must be immune to the virus to stop it from spreading exponentially. This depends heavily on the reproduction number (R0), which indicates how many people an infected person infects on average. At the beginning of 2020, the RKI estimated the R0 at 3.3 to 3.8, which is why a herd immunity of 70% was assumed. However, the alpha variant B1.1.7 had a 1.5-fold higher reproductive value, increasing herd immunity to 80%. As the pandemic progressed, new different variants emerged, including the delta variant B.1.617.2. Compared to the alpha variant, the delta variant has mutations that increase the transmissibility of the virus. This makes the variant much more contagious, which is why an immunity rate of 90% must be achieved for herd immunity. An unusually high number of mutations came along with the omicron variant B.1.1.529. These include known mutations that increase the transmissibility of the virus. A herd immunity of 95% is assumed for omicron.'
+    türkisch = "Sürü bağışıklığı, virüsün katlanarak yayılmasını durdurmak için virüse karşı bağışık olması gereken nüfusun oranıdır. Bu, büyük ölçüde, enfekte olmuş bir kişinin ortalama olarak kaç kişiyi enfekte ettiğini gösteren üreme sayısına (R0) bağlıdır. 2020'nin başında RKI, R0'ı 3,3 ile 3,8 olarak tahmin etti, bu nedenle sürü bağışıklığının %70 olduğu varsayıldı. Bununla birlikte, alfa varyantı B1.1.7, 1.5 kat daha yüksek üreme değerine sahipti ve sürü bağışıklığını %80'e çıkardı. Pandemi ilerledikçe, delta varyantı B.1.617.2 dahil olmak üzere yeni farklı varyantlar ortaya çıktı. Alfa varyantı ile karşılaştırıldığında, delta varyantı, virüsün bulaşabilirliğini artıran mutasyonlara sahiptir. Bu, varyantı çok daha bulaşıcı hale getirir ve bu nedenle sürü bağışıklığı için %90'lık bir bağışıklık oranına ulaşılması gerekir. Omicron varyantı B.1.1.529 ile birlikte yüksek sayıda mutasyon geldi. Bunlar, virüsün bulaşabilirliğini artıran bilinen mutasyonları içerir. Omikron için %95'lik bir sürü bağışıklığı varsayılmaktadır."
+
+    hs = {'de':deutsch, 'en':englisch, 'tr': türkisch}
+    return hs[value]
+
 #herdenimmunität tacho
 @app.callback(
     Output('herdenimmunität', "children"),
     Input("language", "value"),
-    Input("tabs", "value")
+    Input("tabs", "value"),
+    Input('variante', "value"),
+    Input("dropdown_bundeslander", "value")
 )
-def herdenimmun_anzeige(language,tabs):
+def herdenimmun_anzeige(language,tabs,variante,dropdown_bundeslander):
 
-    if tabs == 'tab-1':
-        return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,80],"green":[80,100]}},showCurrentValue=True, units="%", value= df_herdenimmun_einmal,label=sprache['herdenimmunität'][language],max=100,min=0)
+    if variante == varianten['a'][language]:
+        if tabs == 'tab-1':
+            if dropdown_bundeslander:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,70], "yellow":[70,80], "green":[80,100]}},showCurrentValue=True, units="%", value= float(df_impfquote_einmal[df_impfquote_einmal['id'] == dropdown_bundeslander]['Gesamtbevölkerung']),label=sprache['herdenimmunität'][language],max=100,min=0)
+            else:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,70], "yellow":[70,80], "green":[80,100]}},showCurrentValue=True, units="%", value= df_herdenimmun_einmal,label=sprache['herdenimmunität'][language],max=100,min=0)
+        elif tabs == 'tab-2':
+            if dropdown_bundeslander:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,70], "yellow":[70,80], "green":[80,100]}},showCurrentValue=True, units="%",value= float(df_impfquote_grundimun[df_impfquote_grundimun['id'] == dropdown_bundeslander]['Gesamtbevölkerung']),label=sprache['herdenimmunität'][language],max=100,min=0)
+            else:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,70], "yellow":[70,80], "green":[80,100]}},showCurrentValue=True, units="%",value= df_herdenimmun_grund,label=sprache['herdenimmunität'][language],max=100,min=0)
+        elif tabs == 'tab-3':
+            if dropdown_bundeslander:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,70], "yellow":[70,80], "green":[80,100]}},showCurrentValue=True, units="%", value= float(df_impfquote_auffrischung[df_impfquote_auffrischung['id'] == dropdown_bundeslander]['Gesamtbevölkerung']),label=sprache['herdenimmunität'][language],max=100,min=0)
+            else:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,70], "yellow":[70,80], "green":[80,100]}},showCurrentValue=True, units="%", value= df_herdenimmun_auffrischung,label=sprache['herdenimmunität'][language],max=100,min=0)
+        elif tabs == 'tab-4':
+            return []
 
-    elif tabs == 'tab-2':
-        return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,80],"green":[80,100]}},showCurrentValue=True, units="%",value= df_herdenimmun_grund,label=sprache['herdenimmunität'][language],max=100,min=0)
+    elif variante == varianten['d'][language]:
+        if tabs == 'tab-1':
+            if dropdown_bundeslander:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,80], "yellow":[80,90], "green":[90,100]}},showCurrentValue=True, units="%", value= float(df_impfquote_einmal[df_impfquote_einmal['id'] == dropdown_bundeslander]['Gesamtbevölkerung']),label=sprache['herdenimmunität'][language],max=100,min=0)
+            else:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,80], "yellow":[80,90], "green":[90,100]}},showCurrentValue=True, units="%", value= df_herdenimmun_einmal,label=sprache['herdenimmunität'][language],max=100,min=0)
+        elif tabs == 'tab-2':
+            if dropdown_bundeslander:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,80], "yellow":[80,90], "green":[90,100]}},showCurrentValue=True, units="%",value= float(df_impfquote_grundimun[df_impfquote_grundimun['id'] == dropdown_bundeslander]['Gesamtbevölkerung']),label=sprache['herdenimmunität'][language],max=100,min=0)
+            else:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,80], "yellow":[80,90], "green":[90,100]}},showCurrentValue=True, units="%",value= df_herdenimmun_grund,label=sprache['herdenimmunität'][language],max=100,min=0)
+        elif tabs == 'tab-3':
+            if dropdown_bundeslander:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,80], "yellow":[80,90], "green":[90,100]}},showCurrentValue=True, units="%", value= float(df_impfquote_auffrischung[df_impfquote_auffrischung['id'] == dropdown_bundeslander]['Gesamtbevölkerung']),label=sprache['herdenimmunität'][language],max=100,min=0)
+            else:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,80], "yellow":[80,90], "green":[90,100]}},showCurrentValue=True, units="%", value= df_herdenimmun_auffrischung,label=sprache['herdenimmunität'][language],max=100,min=0)
+        elif tabs == 'tab-4':
+            return []
 
-    elif tabs == 'tab-3':
-        return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,80],"green":[80,100]}},showCurrentValue=True, units="%", value= df_herdenimmun_auffrischung,label=sprache['herdenimmunität'][language],max=100,min=0),
-
-    elif tabs == 'tab-4':
-        return []
-
-#sprache updaten bei den radiobutten für das achsen wechseln bei Inzidenz_vs_Impfung
-@app.callback(
-    Output('P_radio_IvsI', "children"),
-    Input("language", "value"),
-)
-def update_langauge_radio_P(language):
-    return radio_IvsI['titel'][language]
-
-@app.callback(
-    Output('radio', "value"),
-    Input("language", "value"),
-)
-def update_langauge_radio_value(language):
-    return radio_IvsI['y2'][language]#+ fig4_labels['yaxis2_title'][language]
-
-@app.callback(
-    Output('radio', "options"),
-    Input("language", "value"),
-)
-def update_langauge_radio_opt(language):
-    return [{'label': x, 'value': x} for x in [radio_IvsI['y0'][language], radio_IvsI['y2'][language]]]
-    #[{'label': x, 'value': x} for x in [radio_IvsI['y0'][language] + fig4_labels['yaxis1_title'][language], radio_IvsI['y2'][language] + fig4_labels['yaxis2_title'][language]]]
-
-
-#figur  Inzidenz_vs_Impfung
-@app.callback(
-    Output("inzidens", "figure"),
-    [Input("radio", "value")],
-    Input("language", "value"))
-def display_(radio_value,language):
-
-    # Create figure with secondary y-axis
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-
-    # Add traces
-    fig.add_trace(
-        go.Scatter(x=daily['date'], y=daily['Gesamtzahl verabreichter Impfstoffdosen'], name=fig4_labels['impfdosen'][language]),
-        secondary_y=False,
-    )
-
-    fig.add_trace(
-        go.Scatter(x=daily['date'], y=daily['cases'], name=fig4_labels['inzidenz'][language]),
-        secondary_y=radio_value == radio_IvsI['y2'][language],
-    )
-
-    # Add figure title
-    fig.update_layout(
-        title_text=fig4_labels['title'][language]
-    )
-
-    fig.update_traces(mode="lines", hovertemplate=None)
-    fig.update_layout(hovermode="x")
-
-    # Set x-axis title
-    fig.update_xaxes(title_text=fig4_labels['date'][language])
-
-    # Set y-axes titles
-    if radio_value != radio_IvsI['y2'][language]:
-        fig.update_yaxes(
-        title_text=fig4_labels['y0'][language],
-        secondary_y=False)
     else:
-        fig.update_yaxes(
-            title_text=fig4_labels['yaxis1_title'][language],
-            secondary_y=False)
+        if tabs == 'tab-1':
+            if dropdown_bundeslander:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,85], "yellow":[85,95], "green":[95,100]}},showCurrentValue=True, units="%", value= float(df_impfquote_einmal[df_impfquote_einmal['id'] == dropdown_bundeslander]['Gesamtbevölkerung']),label=sprache['herdenimmunität'][language],max=100,min=0)
+            else:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,85], "yellow":[85,95], "green":[95,100]}},showCurrentValue=True, units="%", value= df_herdenimmun_einmal,label=sprache['herdenimmunität'][language],max=100,min=0)
+        elif tabs == 'tab-2':
+            if dropdown_bundeslander:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,85], "yellow":[85,95], "green":[95,100]}},showCurrentValue=True, units="%",value= float(df_impfquote_grundimun[df_impfquote_grundimun['id'] == dropdown_bundeslander]['Gesamtbevölkerung']),label=sprache['herdenimmunität'][language],max=100,min=0)
+            else:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,85], "yellow":[85,95], "green":[95,100]}},showCurrentValue=True, units="%",value= df_herdenimmun_grund,label=sprache['herdenimmunität'][language],max=100,min=0)
+        elif tabs == 'tab-3':
+            if dropdown_bundeslander:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,85], "yellow":[85,95], "green":[95,100]}},showCurrentValue=True, units="%", value= float(df_impfquote_auffrischung[df_impfquote_auffrischung['id'] == dropdown_bundeslander]['Gesamtbevölkerung']),label=sprache['herdenimmunität'][language],max=100,min=0)
+            else:
+                return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,85], "yellow":[85,95], "green":[95,100]}},showCurrentValue=True, units="%", value= df_herdenimmun_auffrischung,label=sprache['herdenimmunität'][language],max=100,min=0)
+        elif tabs == 'tab-4':
+            return []
 
-    fig.update_yaxes(
-        title_text=fig4_labels['yaxis2_title'][language],
-        secondary_y=True)
+# #sprache updaten bei den radiobutten für das achsen wechseln bei Inzidenz_vs_Impfung
+# @app.callback(
+#     Output('P_radio_IvsI', "children"),
+#     Input("language", "value"),
+# )
+# def update_langauge_radio_P(language):
+#     return radio_IvsI['titel'][language]
+
+# @app.callback(
+#     Output('radio', "value"),
+#     Input("language", "value"),
+# )
+# def update_langauge_radio_value(language):
+#     return radio_IvsI['y2'][language]#+ fig4_labels['yaxis2_title'][language]
+
+# @app.callback(
+#     Output('radio', "options"),
+#     Input("language", "value"),
+# )
+# def update_langauge_radio_opt(language):
+#     return [{'label': x, 'value': x} for x in [radio_IvsI['y0'][language], radio_IvsI['y2'][language]]]
+#     #[{'label': x, 'value': x} for x in [radio_IvsI['y0'][language] + fig4_labels['yaxis1_title'][language], radio_IvsI['y2'][language] + fig4_labels['yaxis2_title'][language]]]
+
+
+# #figur  Inzidenz_vs_Impfung
+# @app.callback(
+#     Output("inzidens", "figure"),
+#     [Input("radio", "value")],
+#     Input("language", "value"))
+# def display_(radio_value,language):
+
+#     # Create figure with secondary y-axis
+#     fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+#     # Add traces
+#     fig.add_trace(
+#         go.Scatter(x=daily['date'], y=daily['Gesamtzahl verabreichter Impfstoffdosen'], name=fig4_labels['impfdosen'][language]),
+#         secondary_y=False,
+#     )
+
+#     fig.add_trace(
+#         go.Scatter(x=daily['date'], y=daily['cases'], name=fig4_labels['inzidenz'][language]),
+#         secondary_y=radio_value == radio_IvsI['y2'][language],
+#     )
+
+#     # Add figure title
+#     fig.update_layout(
+#         title_text=fig4_labels['title'][language]
+#     )
+
+#     fig.update_traces(mode="lines", hovertemplate=None)
+#     fig.update_layout(hovermode="x")
+
+#     # Set x-axis title
+#     fig.update_xaxes(title_text=fig4_labels['date'][language])
+
+#     # Set y-axes titles
+#     if radio_value != radio_IvsI['y2'][language]:
+#         fig.update_yaxes(
+#         title_text=fig4_labels['y0'][language],
+#         secondary_y=False)
+#     else:
+#         fig.update_yaxes(
+#             title_text=fig4_labels['yaxis1_title'][language],
+#             secondary_y=False)
+
+#     fig.update_yaxes(
+#         title_text=fig4_labels['yaxis2_title'][language],
+#         secondary_y=True)
+
+#     return fig
+@app.callback(
+dash.dependencies.Output('hospitalisation_plot', 'figure'),
+dash.dependencies.Input('hospitalisation', 'value'),
+)
+
+def update_graph(value):
+    # dff = df[df['Year'] == year_value]
+    fig=go.Figure()
+    if value == 'Total':
+        fig.add_trace(go.Scatter(x=timex, y=ung1, name='Ungeimpfte 12-17 Jahre', line = dict(color = "#d6e414")))
+        fig.add_trace(go.Scatter(x=timex, y=ung2, name='Ungeimpfte 18-59 Jahre', line = dict(color = "#ecd71d")))
+        fig.add_trace(go.Scatter(x=timex, y=ung3, name='Ungeimpfte 60+ Jahre', line = dict(color = "#ecb11d")))
+
+        fig.add_trace(go.Scatter(x=timex, y=gru1, name='Grundimmunisierte 12-17 Jahre', line = dict(color = "#93cfe4")))
+        fig.add_trace(go.Scatter(x=timex, y=gru2, name='Grundimmunisierte 18-59 Jahre', line = dict(color = "#139fd6")))
+        fig.add_trace(go.Scatter(x=timex, y=gru3, name='Grundimmunisierte 60+ Jahre', line = dict(color = "#1365d6")))
+
+        fig.add_trace(go.Scatter(x=timex, y=booster2, name='Mit Auffrischimpfung 18-59 Jahre', line = dict(color = "#13d64f")))
+        fig.add_trace(go.Scatter(x=timex, y=booster3, name='Mit Auffrischimpfung 60+ Jahre', line = dict(color = "#0b8f34")))
+
+    elif value == 'Ungeimpfte':
+        fig.add_trace(go.Scatter(x=timex, y=ung1, name='Ungeimpfte 12-17 Jahre', line = dict(color = "#d6e414")))
+        fig.add_trace(go.Scatter(x=timex, y=ung2, name='Ungeimpfte 18-59 Jahre', line = dict(color = "#ecd71d")))
+        fig.add_trace(go.Scatter(x=timex, y=ung3, name='Ungeimpfte 60+ Jahre', line = dict(color = "#ecb11d")))
+
+    elif value == 'Grundimmunisierte':
+        fig.add_trace(go.Scatter(x=timex, y=gru1, name='Grundimmunisierte 12-17 Jahre', line = dict(color = "#93cfe4")))
+        fig.add_trace(go.Scatter(x=timex, y=gru2, name='Grundimmunisierte 18-59 Jahre', line = dict(color = "#139fd6")))
+        fig.add_trace(go.Scatter(x=timex, y=gru3, name='Grundimmunisierte 60+ Jahre', line = dict(color = "#1365d6")))
+
+    elif value == 'Mit Auffrischimpfung':
+        fig.add_trace(go.Scatter(x=timex, y=booster2, name='Mit Auffrischimpfung 18-59 Jahre', line = dict(color = "#13d64f")))
+        fig.add_trace(go.Scatter(x=timex, y=booster3, name='Mit Auffrischimpfung 60+ Jahre', line = dict(color = "#0b8f34")))
+
+
+
+    # set up one trace for source data in df
+    # and one trace for each linear model in df_reg
+
+    # fig.update_traces(customdata=dff[dff['Indicator Name'] == yaxis_column_name]['Country Name'])
+
+
+    fig.update_layout(margin={'l': 40, 'b': 40, 't': 35, 'r': 40})#, hovermode='closest')
+    fig.update_layout(showlegend=True, legend=dict(x=1,y=0.85))
+    # fig.update_layout(template='plotly_dark',
+    #                   plot_bgcolor='#272B30',
+    #                   paper_bgcolor='#272B30')
+    fig.update_layout(  xaxis_title="Meldewoche",
+                        yaxis_title="Prozent der Hospitalisierten"
+                        )
+    fig.update_layout(title = {
+         'text': "Hospitalisierungsrate nach Impfstatus in Deutschalnd",
+         'y':1.0,
+         'x':0.5,
+         'xanchor': 'center',
+         'yanchor': 'top'
+        })
+
+    fig.update_layout(
+    hoverlabel_font_color = 'black',
+    hoverlabel=dict(
+        # text = ''
+        namelength = -1,
+        # bgcolor="gray",
+        font_size=12,
+        # font_family="Rockwell"
+        bordercolor = 'black',
+        # font=dict(color='black'),
+
+    )
+)
+
+
 
     return fig
-
-@app.callback(
-    Output('hospitalisierung', "value"),
-    Input("language", "value"),
-    )
-def update_hospitalization(language):
-    # print('geojson[features]', geojson['features'])
-    # print('value', value)
-    fig2 = px.line(df2_time, x='date', y=['dosen_erst_kumulativ','dosen_zweit_kumulativ','dosen_dritt_kumulativ'],
-        labels={"date": fig2_labels['date'][language],
-                "dosen_erst_kumulativ": fig2_labels['dosen_erst_kumulativ'][language],
-                "dosen_zweit_kumulativ": fig2_labels['dosen_zweit_kumulativ'][language],
-                "dosen_dritt_kumulativ": fig2_labels['dosen_dritt_kumulativ'][language],
-                "value": fig2_labels['value'][language]})
-
-    new_names = [fig2_labels['dosen_erst_kumulativ'][language], fig2_labels['dosen_zweit_kumulativ'][language], fig2_labels['dosen_dritt_kumulativ'][language]]
-
-    for idx, name in enumerate(new_names):
-        fig2.data[idx].name = name
-        fig2.data[idx].hovertemplate = name
-
-    #the colors for figure 2 are defined per color palette for color blind people: https://davidmathlogic.com/colorblind/#%23D81B60-%231E88E5-%23FFC107-%23004D40
-    new_colors = ['#d81b60', '#1e88e5', '#ffc107']
-
-    for idx, color in enumerate(new_colors):
-        fig2.data[idx].line.color = color
-
-    fig2.update_layout(
-        title=fig2_labels['title'][language],
-        xaxis_title=fig2_labels['date'][language],
-        yaxis_title=fig2_labels['yaxis_title'][language],
-        legend_title=fig2_labels['legend_title'][language],
-        yaxis_range=[0,90000000])
-
-    fig2.update_traces(mode="lines", hovertemplate=None)
-    fig2.update_layout(hovermode="x")
-
-    return fig2
 
 
 
