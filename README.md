@@ -1,6 +1,8 @@
 # Robert Koch Institut - Impfquotenmonitoring
 ## by Leylanur Bodur, Melanie Vogel, Johanna Helene von Wachsmann (Group 6)
 
+The data visualization of this project was developed as part of the Data Visualization module at Freie Universität Berlin.
+
 ### Context
 In light of the current pandemic situation due to COVID-19, the Robert Koch Institut (RKI) and the Bundesministerium für Gesundheit (BMG) publish frequently data regarding the pandemic behaviour, like the current incidence numbers and data about the vaccination progress in Germany. What is more, there is also a data set about the vaccination progress per state in Germany, which shows how this progress differs between the states. Furthermore, there is data about the vaccines themselves, the vaccination deliveries, the age groups, facilities, hospitalization and both the numbers of vaccinations and the vaccination rates. 
 
