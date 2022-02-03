@@ -403,11 +403,12 @@ app.layout = html.Div(children=[
             html.A(id ='4', href='https://kurier.at/chronik/welt/omikron-deutsche-regierung-herdenimmunitaet-erst-bei-95-prozent/401864954', target="_blank"),
             dcc.RadioItems(
                 id='variante',
-                #labelStyle={'display': 'block'},
+                #labelStyle={'display': 'inline-block', 'margin-right':'20px'},
                 value=c_varianten[0],
                 options=[{'label': x, 'value': x} for x in c_varianten]
-            )
+            ),
         ]),
+
 
     html.Div(
         style={'width': '100%','display':'inline-block','overflow': 'hidden'},
@@ -442,6 +443,7 @@ app.layout = html.Div(children=[
         ]
     ),
     html.Div(
+        id = 'datenstand2',
         style={'width': '50%','height': '100%','display':'inline-block', 'float':'right'},
         children=[
             dcc.Graph(id="timeseries",figure=fig2, clear_on_unhover=True, style={'width': '100%', 'height': '70vh'}),
@@ -507,13 +509,14 @@ app.layout = html.Div(children=[
         id = 'data_version',
         style={'width': '50%','height': '100%','display':'inline-block', 'float':'right'},
         children=[
-            html.Span(str(dataversion_RKI)),
+            html.Span('Datenstand: ' + str(dataversion_RKI)[-19:-4] + ':00'),
         ]
     ),
     html.Div([
 
-        html.Div([
-            dcc.Dropdown(
+        html.Div(
+            id = 'hos_dropdown',
+            children=[dcc.Dropdown(
                 id='hospitalisation',
                 options=[{'label': i, 'value': i} for i in dropdown_hosp],
                 value='Total',
@@ -838,6 +841,24 @@ def update_dropdown_list(language):
 def update_dropdown(language):
     return sprache['placeholder_dropdown'][language]
 
+@app.callback(
+    Output("datenstand2", "children"),
+    Input("language", "value")
+)
+def update_dataversion2(language):
+    if language == 'de':
+        return [
+        dcc.Graph(id="timeseries",figure=fig2, clear_on_unhover=True, style={'width': '100%', 'height': '70vh'}),
+        html.Span('Datenstand: ' + str(dataversion_dashboard))]
+    elif language == 'en':
+        return [
+        dcc.Graph(id="timeseries",figure=fig2, clear_on_unhover=True, style={'width': '100%', 'height': '70vh'}),
+        html.Span('Data version: ' + str(dataversion_dashboard))]
+    else:
+        return [
+        dcc.Graph(id="timeseries",figure=fig2, clear_on_unhover=True, style={'width': '100%', 'height': '70vh'}),
+        html.Span('Hier fehlt die türkische Übersetzung: ' + str(dataversion_dashboard))]
+
 #update fig2 sprache
 @app.callback(
     Output("timeseries", "figure"),
@@ -933,18 +954,64 @@ def update_infotext(language):
         return [
         html.Br(),
         html.H3('COVID-19 und der Impffortschritt in Deutschland'),
-        html.P('COVID-19 ist eine hochansteckende Krankheit die durch das Sars-Cov-2 Virus verursacht wird und der Grund für die derzeitige weltweite Pandemie ist. Der Virus ist in Wuhan, China entstanden und wurde dort zunächst entdeckt. Impfstoffe gegen das Virus wurden Ende 2020 in Deutschland zugelassen, sodass sich die Menschen vor dem Virus und andere Menschen vor sich schützen können. Dabei wird ein Versuch unternommen die Gesamtbevölkerung in Deutschland zu immunisieren, indem man einen Anteil der Bevölkerung impft (Herdenimmunität). Zu den bekannten Impfstoffen gehören der von BioNTech/Pfizer, der seit 26.12.2020 in Deutschland verfügbar ist, der von Moderna Biotech seit 14.01.2021, der von AstraZeneca seit 08.02.2021, der von Janssen seit 26.04.2021 und der von Novavax, der jedoch bisher nicht in Deutschland verfügbar ist (wurde jedoch angekündigt).'),
+        html.P('COVID-19 ist eine hochansteckende Krankheit die durch das Sars-Cov-2 Virus verursacht wird und der Grund für die derzeitige weltweite Pandemie ist. Der Virus ist in Wuhan, China entstanden und wurde dort zunächst entdeckt. Impfstoffe gegen das Virus wurden Ende 2020 in Deutschland zugelassen, sodass sich die Menschen sich selbst und andere vor dem Virus besser schützen können. Dabei wird ein Versuch unternommen die Gesamtbevölkerung in Deutschland zu immunisieren, indem man einen Anteil der Bevölkerung impft (Herdenimmunität). Zu den bekannten Impfstoffen gehören der von BioNTech/Pfizer, der seit 26.12.2020 in Deutschland verfügbar ist, der von Moderna Biotech seit 14.01.2021, der von AstraZeneca seit 08.02.2021, der von Janssen seit 26.04.2021 und der von Novavax, der jedoch bisher nicht in Deutschland verfügbar ist (wurde jedoch angekündigt).'),
         html.Br(),
-        html.P('Im rechten Diagramm sieht man den Impffortschritt der Erst-, Zweit- und Drittimpfungen seit Januar 2021 in Deutschland. Daran ist ebenfalls deutlich zu erkennen, ab wann die Zweit- und Booster-Impfungen erst einsetzten.'),
+        html.P('Im rechten Diagramm sieht man den Impffortschritt der Erst-, Zweit- und Drittimpfungen seit Januar 2021 in Deutschland. Die drei Kategorien können in der Legende ab- und ausgewählt werden. Man sieht deutlich, ab wann die Zweit- und Booster-Impfungen erst einsetzten.'),
         html.Br(),
-        html.P('Das Diagramm zu Impfquote nach Altergruppe in ganz Deutschland und für das jeweils oben ausgewählte Bundesland ist unter diesem Text zu sehen. Hier kann man die Aufteilung in die drei Kategorien "Mindestens Einmal Geimpft", "Grundimmunisiert", also je nach Impfstoff ein- oder zweimal geimpft, und "Auffrischimpung", welche ebenfalls je nach Impfstoff die zweite oder dritte Impfung, die sogenannte Booster-Impfung ist. Leider wurde vom Robert Koch Institut die Altersgruppe 5-11 Jahre für die Auffrischimpfung nicht weiter erhoben.'),
+        html.P('Das Diagramm zu Impfquote nach Altergruppe in ganz Deutschland und für das jeweils oben ausgewählte Bundesland ist unter diesem Text zu sehen. Hier kann man die Aufteilung in die drei Kategorien "Mindestens Einmal Geimpft", "Grundimmunisiert", also je nach Impfstoff ein- oder zweimal geimpft, und "Auffrischimpfung", welche ebenfalls je nach Impfstoff die zweite oder dritte Impfung, die sogenannte Booster-Impfung ist. Leider wurde vom Robert Koch Institut die Altersgruppe 5-11 Jahre für die Auffrischimpfung nicht weiter erhoben.'),
         html.Br(),
-        html.P('Im unten stehenden Diagramm zur Hospitalisierungsrate wird die Anzahl hospitalisierter COVID-19 Fälle in Prozent und aufgeschlüsselt in die verschiedenenen Altersgruppen und Impfstati widergespiegelt. Auch hier sieht man die Graphen für die Fälle mit Auffrischimpfung erst später einsetzen, da vor dem entsprechenden Zeitpunkt noch nicht viele Auffrischimpfungen erfolgten.')
+        html.P('Im unten stehenden Diagramm zur Hospitalisierungsrate wird die Anzahl hospitalisierter COVID-19 Fälle in Prozent und aufgeschlüsselt in die verschiedenen Altersgruppen und Impfstati widergespiegelt. Auch hier sieht man die Graphen für die Fälle mit Auffrischimpfung erst später einsetzen, da vor dem entsprechenden Zeitpunkt noch keine Auffrischimpfungen erfolgten.')
         ]
     elif language == 'en':
-        return html.H3('Hier kommt der Info Text hin')
+        return [
+        html.Br(),
+        html.H3('COVID-19 and the vaccination progress in Germany'),
+        html.P('COVID-19 is a contagious disease caused by Sars-Cov-2 which currently causes a worldwide pandemic. The origin of the virus is known as Wuhan, China. Vaccinations against the virus were approved in the end of 2020 in Germany, so that people can better protect themselves and others. It is an attempt to immunize the entire population in Germany by vaccinating a specific proportion of the population (herd immunity). To the known vaccines belong the one from BioNTech/Pfizer, which is available in Germany since 26.12.2020, the one from Moderna Biotech available since 14.01.2021, the one from AstraZeneca available since 08.02.2021, the one from Janssen available since 26.04.2021 and the one from Novavax, which is not yet available in Germany (coming soon).'),
+        html.Br(),
+        html.P('In the diagram to the right the vaccination progress over time in Germany is depicted, divided into first, second and third vaccination since January 2021. The three different categories can be deselected and selected. You can see clearly from which point on booster vaccinations were given.'),
+        html.Br(),
+        html.P('The diagram for the vaccination rate per age group in Germany and for each state you choose at the top can be seen under this text. Here you have the separation into the three categories "At least once vaccinated", "Initial immunization (fully vaccinated)", so depending on the vaccine either one or two vaccinations, and "Booster vaccination", which is also depending on the vaccine either the second or the third vaccination. Unfortunately, the age group 5-11 years was no longer tracked by the Robert Koch Institut for booster vaccinations from the Robert Koch Institut.'),
+        html.Br(),
+        html.P('In the diagram at the bottom you can see the hospitalization rate with the prozentual number of hospitalized COVID-19 cases, divided into the different age groups and vaccination statuses. Here again, you can see that the graphs for booster vaccinations begin later than the others, because before that date, no booster vaccinations were given.')
+        ]
     else:
-        return html.H3('Hier kommt der Info Text hin')
+        return html.H3('Hier fehlt die türkische Übersetzung')
+
+@app.callback(
+    Output("rki_source", "children"),
+    Input("language", "value")
+)
+def update_sources(language):
+    if language == 'de':
+        return [
+        html.Span('Datenquellen: '),
+        html.A('Robert Koch Institut - Impfquotenmonitoring',href='https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Daten/Impfquotenmonitoring.html', target="_blank"),
+        html.A(', '),
+        html.A('impfdashboard (RKI, BMG)', href='https://impfdashboard.de/daten', target="_blank")]
+    elif language == 'en':
+        return [
+        html.Span('Data sources: '),
+        html.A('Robert Koch Institut - Impfquotenmonitoring',href='https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Daten/Impfquotenmonitoring.html', target="_blank"),
+        html.A(', '),
+        html.A('impfdashboard (RKI, BMG)', href='https://impfdashboard.de/daten', target="_blank")]
+    else:
+        return [
+        html.Span('Hier fehlt die türkische Übersetzung'),
+        html.A('Robert Koch Institut - Impfquotenmonitoring',href='https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Daten/Impfquotenmonitoring.html', target="_blank"),
+        html.A(', '),
+        html.A('impfdashboard (RKI, BMG)', href='https://impfdashboard.de/daten', target="_blank")]
+
+@app.callback(
+    Output("data_version", "children"),
+    Input("language", "value")
+)
+def update_dataversion(language):
+    if language == 'de':
+        return html.Span('Datenstand: ' + str(dataversion_RKI)[-19:-4] + ':00')
+    elif language == 'en': 
+        return html.Span('Data version: ' + str(dataversion_RKI)[-19:-4] + ':00')
+    else:
+        return html.Span('Hier fehlt die türkische Übersetzung: ' + str(dataversion_RKI)[-19:-4] + ':00')
 
 #herden div
 @app.callback(
@@ -1146,39 +1213,96 @@ def herdenimmun_anzeige(language,tabs,variante,dropdown_bundeslander):
 #         secondary_y=True)
 
 #     return fig
+
+
+# dropdown_hosp_label = {
+#     'options': {'de': ['Total', 'Ungeimpfte', 'Grundimmunisierte', 'Mit Auffrischimpfung'], 'en': ['Total', 'Unvaccinated', 'Initally vaccinated', 'With booster vaccination'], 'tr': ['?','?','?','?']}
+#     }
+
+# @app.callback(
+#     Output('hos_dropdown', "children"),
+#     Input("language", "value"),
+# )
+# def update_hosdrop_language(language):
+#     if language == 'de':
+#         return
+#         dcc.Dropdown(
+#                 id='hospitalisation',
+#                 options=[{'label': dropdown_hosp_label['options'][language], 'value': i} for i in dropdown_hosp],
+#                 value='Total',
+#                 placeholder = 'Wähle Gruppe',)
+#     elif language == 'en':
+#         return
+#         dcc.Dropdown(
+#                 id='hospitalisation',
+#                 options=[{'label': dropdown_hosp_label['options'][language], 'value': i} for i in dropdown_hosp],
+#                 value='Total',
+#                 placeholder = 'Wähle Gruppe',)
+#     else:
+#         return
+#         dcc.Dropdown(
+#                 id='hospitalisation',
+#                 options=[{'label': dropdown_hosp_label['options'][language], 'value': i} for i in dropdown_hosp],
+#                 value='Total',
+#                 placeholder = 'Wähle Gruppe',)    
+
+
+hosfig_labels = {
+            "to_un_12-17": {'de': "Ungeimpfte 5-11 Jahre" , 'en': "Unvaccinated 5-11 years", 'tr': '?????????????? 5-11 yaş'},     #hier fehlt die türkische übersetzung
+            "to_un_18-59": {'de': "Ungeimpfte 18-59 Jahre" , 'en': "Unvaccinated 18-59 years", 'tr': '????????????????????? 18-59 yaş'},
+            "to_un_60+": {'de': "Ungeimpfte 60+ Jahre" , 'en': "Unvaccinated 60+ years", 'tr': '??????????????? 60+ yaş'},
+            "to_gr_12-17": {'de': "Grundimmunisierte 12-17 Jahre", 'en': "Initially immunized 12-17 years", 'tr': '12-17 yaş'},
+            "to_gr_18-59": {'de': "Grundimmunisierte 18-59 Jahre", 'en': "Initially immunized 18-59 years", 'tr': '18-59 yaş'},
+            "to_gr_60+": {'de': "Grundimmunisierte 60+ Jahre", 'en': "Initially immunized 60+ years", 'tr': '60+ yaş'},
+            "to_bo_18-59": {'de': "Mit Auffrischimpfung 18-59 Jahre", 'en': "With booster vaccination 18-59 years", 'tr': '18-59 yaş'},
+            "to_bo_60+": {'de': "Mit Auffrischimpfung 60+ Jahre", 'en': "With booster vaccination 60+ years", 'tr': '60+ yaş'},
+            "un_12-17": {'de': "Ungeimpfte 5-11 Jahre" , 'en': "Unvaccinated 5-11 years", 'tr': '?????????????? 5-11 yaş'},
+            "un_18-59": {'de': "Ungeimpfte 18-59 Jahre" , 'en': "Unvaccinated 18-59 years", 'tr': '????????????????????? 18-59 yaş'},
+            "un_60+": {'de': "Ungeimpfte 60+ Jahre" , 'en': "Unvaccinated 60+ years", 'tr': '??????????????? 60+ yaş'},
+            "gr_12-17": {'de': "Grundimmunisierte 12-17 Jahre", 'en': "Initially immunized 12-17 years", 'tr': '?????????????? 12-17 yaş'},
+            "gr_18-59": {'de': "Grundimmunisierte 18-59 Jahre", 'en': "Initially immunized 18-59 years", 'tr': '????????????? 18-59 yaş'},
+            "gr_60+": {'de': "Grundimmunisierte 60+ Jahre", 'en': "Initially immunized 60+ years", 'tr': '???????????? 60+ yaş'},
+            "bo_18-59": {'de': "Mit Auffrischimpfung 18-59 Jahre", 'en': "With booster vaccination 18-59 years", 'tr': '????????? 18-59 yaş'},
+            "bo_60+": {'de': "Mit Auffrischimpfung 60+ Jahre", 'en': "With booster vaccination 60+ years", 'tr': '???????????? 60+ yaş'},
+            "xaxis_title": {'de': 'Meldewoche', 'en': 'Reported calendar week', 'tr': "?????????????"},
+            "yaxis_title": {'de': 'Prozent der Hospitalisierten (%)', 'en': 'Percentage of hospitalized cases (%)', 'tr': '??????????????? (%)'},
+            'title': {'de': 'Hospitalisierungsrate nach Impfstatus in Deutschland', 'en':'Hospitalisation rate as per vaccination status in Germany', 'tr': "?????????????"},
+            }
+
+
 @app.callback(
 dash.dependencies.Output('hospitalisation_plot', 'figure'),
-dash.dependencies.Input('hospitalisation', 'value'),
+dash.dependencies.Input('language','value'),
+[dash.dependencies.Input('hospitalisation','value')]
 )
-
-def update_graph(value):
+def update_graph(language, value):
     # dff = df[df['Year'] == year_value]
     fig=go.Figure()
     if value == 'Total':
-        fig.add_trace(go.Scatter(x=timex, y=ung1, name='Ungeimpfte 12-17 Jahre', line = dict(color = "#d6e414")))
-        fig.add_trace(go.Scatter(x=timex, y=ung2, name='Ungeimpfte 18-59 Jahre', line = dict(color = "#ecd71d")))
-        fig.add_trace(go.Scatter(x=timex, y=ung3, name='Ungeimpfte 60+ Jahre', line = dict(color = "#ecb11d")))
+        fig.add_trace(go.Scatter(x=timex, y=ung1, name=hosfig_labels['to_un_12-17'][language], line = dict(color = "#d6e414")))
+        fig.add_trace(go.Scatter(x=timex, y=ung2, name=hosfig_labels['to_un_18-59'][language], line = dict(color = "#ecd71d")))
+        fig.add_trace(go.Scatter(x=timex, y=ung3, name=hosfig_labels['to_un_60+'][language], line = dict(color = "#ecb11d")))
 
-        fig.add_trace(go.Scatter(x=timex, y=gru1, name='Grundimmunisierte 12-17 Jahre', line = dict(color = "#93cfe4")))
-        fig.add_trace(go.Scatter(x=timex, y=gru2, name='Grundimmunisierte 18-59 Jahre', line = dict(color = "#139fd6")))
-        fig.add_trace(go.Scatter(x=timex, y=gru3, name='Grundimmunisierte 60+ Jahre', line = dict(color = "#1365d6")))
+        fig.add_trace(go.Scatter(x=timex, y=gru1, name=hosfig_labels['to_gr_12-17'][language], line = dict(color = "#93cfe4")))
+        fig.add_trace(go.Scatter(x=timex, y=gru2, name=hosfig_labels['to_gr_18-59'][language], line = dict(color = "#139fd6")))
+        fig.add_trace(go.Scatter(x=timex, y=gru3, name=hosfig_labels['to_gr_60+'][language], line = dict(color = "#1365d6")))
 
-        fig.add_trace(go.Scatter(x=timex, y=booster2, name='Mit Auffrischimpfung 18-59 Jahre', line = dict(color = "#13d64f")))
-        fig.add_trace(go.Scatter(x=timex, y=booster3, name='Mit Auffrischimpfung 60+ Jahre', line = dict(color = "#0b8f34")))
+        fig.add_trace(go.Scatter(x=timex, y=booster2, name=hosfig_labels['to_bo_18-59'][language], line = dict(color = "#13d64f")))
+        fig.add_trace(go.Scatter(x=timex, y=booster3, name=hosfig_labels['to_bo_60+'][language], line = dict(color = "#0b8f34")))
 
     elif value == 'Ungeimpfte':
-        fig.add_trace(go.Scatter(x=timex, y=ung1, name='Ungeimpfte 12-17 Jahre', line = dict(color = "#d6e414")))
-        fig.add_trace(go.Scatter(x=timex, y=ung2, name='Ungeimpfte 18-59 Jahre', line = dict(color = "#ecd71d")))
-        fig.add_trace(go.Scatter(x=timex, y=ung3, name='Ungeimpfte 60+ Jahre', line = dict(color = "#ecb11d")))
+        fig.add_trace(go.Scatter(x=timex, y=ung1, name=hosfig_labels['un_12-17'][language], line = dict(color = "#d6e414")))
+        fig.add_trace(go.Scatter(x=timex, y=ung2, name=hosfig_labels['un_18-59'][language], line = dict(color = "#ecd71d")))
+        fig.add_trace(go.Scatter(x=timex, y=ung3, name=hosfig_labels['un_60+'][language], line = dict(color = "#ecb11d")))
 
     elif value == 'Grundimmunisierte':
-        fig.add_trace(go.Scatter(x=timex, y=gru1, name='Grundimmunisierte 12-17 Jahre', line = dict(color = "#93cfe4")))
-        fig.add_trace(go.Scatter(x=timex, y=gru2, name='Grundimmunisierte 18-59 Jahre', line = dict(color = "#139fd6")))
-        fig.add_trace(go.Scatter(x=timex, y=gru3, name='Grundimmunisierte 60+ Jahre', line = dict(color = "#1365d6")))
+        fig.add_trace(go.Scatter(x=timex, y=gru1, name=hosfig_labels['gr_12-17'][language], line = dict(color = "#93cfe4")))
+        fig.add_trace(go.Scatter(x=timex, y=gru2, name=hosfig_labels['gr_18-59'][language], line = dict(color = "#139fd6")))
+        fig.add_trace(go.Scatter(x=timex, y=gru3, name=hosfig_labels['gr_60+'][language], line = dict(color = "#1365d6")))
 
     elif value == 'Mit Auffrischimpfung':
-        fig.add_trace(go.Scatter(x=timex, y=booster2, name='Mit Auffrischimpfung 18-59 Jahre', line = dict(color = "#13d64f")))
-        fig.add_trace(go.Scatter(x=timex, y=booster3, name='Mit Auffrischimpfung 60+ Jahre', line = dict(color = "#0b8f34")))
+        fig.add_trace(go.Scatter(x=timex, y=booster2, name=hosfig_labels['bo_18-59'][language], line = dict(color = "#13d64f")))
+        fig.add_trace(go.Scatter(x=timex, y=booster3, name=hosfig_labels['bo_60+'][language], line = dict(color = "#0b8f34")))
 
 
 
@@ -1193,11 +1317,11 @@ def update_graph(value):
     # fig.update_layout(template='plotly_dark',
     #                   plot_bgcolor='#272B30',
     #                   paper_bgcolor='#272B30')
-    fig.update_layout(  xaxis_title="Meldewoche",
-                        yaxis_title="Prozent der Hospitalisierten"
+    fig.update_layout(  xaxis_title=hosfig_labels['xaxis_title'][language],
+                        yaxis_title=hosfig_labels['yaxis_title'][language]
                         )
     fig.update_layout(title = {
-         'text': "Hospitalisierungsrate nach Impfstatus in Deutschalnd",
+         'text': hosfig_labels['title'][language],
          'y':1.0,
          'x':0.5,
          'xanchor': 'center',
@@ -1221,7 +1345,6 @@ def update_graph(value):
 
 
     return fig
-
 
 
 if __name__ == '__main__':
