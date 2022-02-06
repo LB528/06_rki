@@ -138,9 +138,17 @@ df_bundes = df[0].copy()
 df_bundes.drop([2],inplace=True) #row DE-BUND dropen
 df_bundes['id'] = ['10','9','6','7','2','4','0','11','1','3','5','15','8','12','13','14']
 
-#Hospitalisierungsrate Daten
+# hospitalisation rki
+url_hosp = 'https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Daten/Inzidenz_Impfstatus.xlsx?__blob=publicationFile'
+download_hosp = requests.get(url_hosp)
 
-hospitalisiert = pd.read_excel(r'data/Inzidenz_Impfstatus.xlsx', sheet_name='Hospitalisierte_nach_Impfstatus', header=3)
+with io.BytesIO(download_hosp.content) as b_hosp:
+    df_dataversionRKI_hosp1 = pd.io.excel.read_excel(b_hosp, "Erläuterungen").fillna('')
+    df_dataversionRKI_hosp2 = pd.io.excel.read_excel(b_hosp, "Hospitalisierte_nach_Impfstatus", header=3)
+
+dataversionRKI_hosp = df_dataversionRKI_hosp1['Allgemeine Erläuterungen'].values[0]
+hospitalisiert = pd.DataFrame(df_dataversionRKI_hosp2)
+
 df = pd.DataFrame(hospitalisiert, columns= hospitalisiert.columns)
 
 meldewoche = df['Meldewoche']
@@ -457,9 +465,26 @@ app.layout = html.Div(children=[
     }),
     html.Div([
         dcc.Graph(
-            id='hospitalisation_plot',
+            id='hospitalisation_plot',)
             # hoverData={'points': [{'customdata': 'Japan'}]}
-        )],),
+        ],),
+    html.Br(),
+    html.Br(),
+    html.Div(
+        id = 'rki_source_hosp',
+        style={'width': '50%','height': '100%','display':'inline-block', 'float':'left'},
+        children=[
+            html.Span('Datenquellen: '),
+            html.A('Robert Koch Institut - Hospitalisierungsrate',href='https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Daten/Inzidenz_Impfstatus.html', target="_blank"),
+        ]
+    ),
+    html.Div(
+        id = 'data_version_hosp',
+        style={'width': '50%','height': '100%','display':'inline-block', 'float':'right'},
+        children=[
+            html.Span('Datenstand: ' + str(dataversionRKI_hosp)),
+        ]
+    ),
 ])
 
 #tabs
@@ -930,10 +955,43 @@ def update_sources(language):
 def update_dataversion(language):
     if language == 'de':
         return html.Span('Datenstand: ' + str(dataversion_RKI)[-19:-4] + ':00')
-    elif language == 'en': 
+    elif language == 'en':
         return html.Span('Data version: ' + str(dataversion_RKI)[-19:-4] + ':00')
     else:
         return html.Span('veri güncellemesi: ' + str(dataversion_RKI)[-19:-4] + ':00')
+
+# ------------------------------------------------------------------------------------------
+@app.callback(
+    Output("rki_source_hosp", "children"),
+    Input("language", "value")
+)
+def update_sources(language):
+    if language == 'de':
+        return [
+        html.Span('Datenquellen: '),
+        html.A('Robert Koch Institut - Hospitalisierungsrate',href='https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Daten/Inzidenz_Impfstatus.html', target="_blank")]
+    elif language == 'en':
+        return [
+        html.Span('Data sources: '),
+        html.A('Robert Koch Institut - Hospitalisierungsrate',href='https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Daten/Inzidenz_Impfstatus.html', target="_blank")]
+    else:
+        return [
+        html.Span('veri kaynakları: '),
+        html.A('Robert Koch Institut - Hospitalisierungsrate',href='https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Daten/Inzidenz_Impfstatus.html', target="_blank")]
+
+
+@app.callback(
+    Output("data_version_hosp", "children"),
+    Input("language", "value")
+)
+def update_dataversion(language):
+    if language == 'de':
+        return html.Span('Datenstand: ' + str(dataversionRKI_hosp))
+    elif language == 'en':
+        return html.Span('Data version: ' + str(dataversionRKI_hosp))
+    else:
+        return html.Span('veri güncellemesi: ' + str(dataversionRKI_hosp))
+# -----------------------------------------------------------------------------------------
 
 #herden div
 @app.callback(
@@ -1062,7 +1120,7 @@ def herdenimmun_anzeige(language,tabs,variante,dropdown_bundeslander):
             else:
                 return daq.Gauge(color={"gradient":True,"ranges":{"white":[0,85], "yellow":[85,95], "green":[95,100]}},showCurrentValue=True, units="%", value= df_herdenimmun_auffrischung,label=sprache['herdenimmunität'][language],max=100,min=0)
         elif tabs == 'tab-4':
-            return []  
+            return []
 
 hosfig_labels = {
             "to_un_12-17": {'de': "Ungeimpfte 5-11 Jahre" , 'en': "Unvaccinated 5-11 years", 'tr': 'Aşılanmamış 5-11 yaş'},     #hier fehlt die türkische übersetzung
@@ -1072,7 +1130,7 @@ hosfig_labels = {
             "to_gr_18-59": {'de': "Grundimmunisierte 18-59 Jahre", 'en': "Initially immunized 18-59 years", 'tr': 'Genel bağışıklık 18-59 yaş'},
             "to_gr_60+": {'de': "Grundimmunisierte 60+ Jahre", 'en': "Initially immunized 60+ years", 'tr': 'Genel bağışıklık 60+ yaş'},
             "to_bo_18-59": {'de': "Mit Auffrischimpfung 18-59 Jahre", 'en': "With booster vaccination 18-59 years", 'tr': 'Üçüncü aşılı 18-59 yaş'},
-            "to_bo_60+": {'de': "Mit Auffrischimpfung 60+ Jahre", 'en': "With booster vaccination 60+ years", 'tr': 'Üçüncü aşılı60+ yaş'},
+            "to_bo_60+": {'de': "Mit Auffrischimpfung 60+ Jahre", 'en': "With booster vaccination 60+ years", 'tr': 'Üçüncü aşılı 60+ yaş'},
             "un_12-17": {'de': "Ungeimpfte 5-11 Jahre" , 'en': "Unvaccinated 5-11 years", 'tr': 'Aşılanmamış 5-11 yaş'},
             "un_18-59": {'de': "Ungeimpfte 18-59 Jahre" , 'en': "Unvaccinated 18-59 years", 'tr': 'Aşılanmamış 18-59 yaş'},
             "un_60+": {'de': "Ungeimpfte 60+ Jahre" , 'en': "Unvaccinated 60+ years", 'tr': 'Aşılanmamış 60+ yaş'},
@@ -1181,7 +1239,7 @@ def update_dropdown_list(language):
     if language == 'de':
         return 'Wähle Gruppe'
     elif language == 'en':
-        return 'Choose group' 
+        return 'Choose group'
     else:
         return 'Grup seç'
 
