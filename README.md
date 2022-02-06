@@ -27,7 +27,7 @@ We want to give a good and easy to understand one glimpse overview of the curren
 ### Prototype -has to be updated to Screencast!!!
 The following two pictures portray the prototype. It is possible to hover over a state with the cursor to see the number of vaccinations in that state. The map is color-coded by the number of vaccinations according to the scale on the right side. On the left side is a drop down menu, where one can choose a state, which is then shown instead of the whole of Germany ([Auswahl Berlin]). There are also radio buttons for the selection of the language.
 
-![Screenshot vom aktuellen Stand der Hauptseite des Prototypes](overview.png)
+![Screenshot vom aktuellen Stand der Hauptseite des Prototypes](screencast_rki_06.mp4)
 ![Auswahl Berlin](berlin.png)
 
 #### Domain problem characterization
