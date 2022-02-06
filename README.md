@@ -24,7 +24,7 @@ What is the purpose of our visualization?
 We want to give a good and easy to understand one glimpse overview of the current situation in Germany regarding the pandemic, with information on the vaccination progress per age group and state, as well as the current burden on hospitals through the hospitalization cases itemized by age group and vaccination status. This will especially help executives in the healthcare sector to make informed decisions and to give advice accordingly. We want to emphasize the importance and idea of herd immunity and how close we are to that goal. We also want to display more visualizations in one place (at one glimpse) in comparison to existing websites. With the hospitalization graph we hope to visualize the importance of vaccinations and how hte cases are usually less severe when people are vaccinated.
 
 
-### Prototype -has to be updated to Screencast!!!
+### Prototype
 The following two pictures portray the prototype. It is possible to hover over a state with the cursor to see the number of vaccinations in that state. The map is color-coded by the number of vaccinations according to the scale on the right side. On the left side is a drop down menu, where one can choose a state, which is then shown instead of the whole of Germany ([Auswahl Berlin]). There are also radio buttons for the selection of the language.
 
 ![Screencast des Prototypes](screencast_rki_06.mp4)
