@@ -1140,8 +1140,8 @@ hosfig_labels = {
             "bo_18-59": {'de': "Mit Auffrischimpfung 18-59 Jahre", 'en': "With booster vaccination 18-59 years", 'tr': 'Üçüncü aşılı 18-59 yaş'},
             "bo_60+": {'de': "Mit Auffrischimpfung 60+ Jahre", 'en': "With booster vaccination 60+ years", 'tr': 'Üçüncü aşılı 60+ yaş'},
             "xaxis_title": {'de': 'Meldewoche', 'en': 'Reported calendar week', 'tr': "kayıt haftası"},
-            "yaxis_title": {'de': 'Prozent der Hospitalisierten (%)', 'en': 'Percentage of hospitalized cases (%)', 'tr': 'hastaneye kaldırılanların yüzdesi (%)'},
-            'title': {'de': 'Hospitalisierungsrate nach Impfstatus in Deutschland', 'en':'Hospitalisation rate as per vaccination status in Germany', 'tr': "Almanya'da aşı durumuna göre hastaneye kaldırılanların oranı"},
+            "yaxis_title": {'de': 'Inzidenz pro 100.000', 'en': 'Incidence per 100,000', 'tr': '100.000 üzerinden insidans '},
+            'title': {'de': 'Hospitalisierte Fälle in Deutschland', 'en':'Hospitalized cases in Germany', 'tr': "Almanya'da hastaneye kaldırılan vakalar"},
             }
 
 
