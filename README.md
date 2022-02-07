@@ -3,6 +3,15 @@
 
 The data visualization of this project was developed as part of the Data Visualization module at Freie Universität Berlin.
 
+### Installation
+Easy installation with conda. The conda environament files (.yml) are provided in the [env](env) folder. Steps to run the prototype locally.
+```
+git clone https://github.com/LB528/06_rki
+cd 06_rki
+conda env create -f environment.yml
+conda activate rki_env
+python app.py
+```
 ### Context
 In light of the current pandemic situation due to COVID-19, the Robert Koch Institut (RKI) and the Bundesministerium für Gesundheit (BMG) publish data frequently regarding the development of the pandemic: e.g. the current incidence numbers and data about the vaccination progress in Germany. Additionally, a data set about the vaccination progress per state in Germany was included, which shows how the progress differs between the states. Furthermore, there is data about the vaccines themselves, the vaccination deliveries, the age groups, facilities, hospitalization and both the numbers of vaccinations and the vaccination rates.
 
