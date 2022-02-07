@@ -4,7 +4,7 @@
 The data visualization of this project was developed as part of the Data Visualization module at Freie Universität Berlin.
 
 ### Installation
-Easy installation with conda. The conda environament files (.yml) are provided in the [env](env) folder. Steps to run the prototype locally.
+Easy installation with [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html). The conda environament files (.yml) are provided in the [env](env) folder. Steps to run the prototype locally.
 ```
 git clone https://github.com/LB528/06_rki
 cd 06_rki
