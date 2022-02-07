@@ -8,7 +8,7 @@ Easy installation with conda. The conda environament files (.yml) are provided i
 ```
 git clone https://github.com/LB528/06_rki
 cd 06_rki
-conda env create -f environment.yml
+conda env create -f env/env_linux.yml #for Mac OS env/rki_env.yml
 conda activate rki_env
 python app.py
 ```
