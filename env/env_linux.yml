@@ -1,4 +1,4 @@
-name: data_viz
+name: rki_env
 channels:
   - plotly
   - anaconda
